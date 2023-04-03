@@ -1,2 +1,3 @@
 streamlit==1.18
 streamlit-authenticator==0.2.1
+hydralit-components==1.0
