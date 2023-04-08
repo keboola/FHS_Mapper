@@ -92,27 +92,27 @@ if authentication_status:
         
     st.markdown("### Workflow Progress")
     
-    cc = st.columns(4)
+    cc = st.columns(3)
     
-    with cc[0]:
-        hc.info_card(content='Config(s) created' ,bar_value=100,sentiment='good', key='info1')
+#    with cc[0]:
+#        hc.info_card(content='Config(s) created' ,bar_value=100,sentiment='good', key='info1')
 
-    with cc[1]:
+    with cc[0]:
      # can just use 'good', 'bad', 'neutral' sentiment to auto color the card
-        card1 = hc.info_card(content='Authorization done!', sentiment='neutral',bar_value=100)
+        card1 = hc.info_card(content='Authorization done!', sentiment='good',bar_value=100)
         
     if st.session_state["username"]=='ondra':
-        with cc[2]:
+        with cc[1]:
          hc.info_card(content='Data extracted', sentiment='bad',bar_value=100, key='info2')
 
     elif st.session_state["username"] == 'kritiga':
-        with cc[2]:
+        with cc[1]:
          hc.info_card(content='Data extracted', sentiment='good',bar_value=100, key='info2')
     else:
-        with cc[2]:
+        with cc[1]:
          hc.info_card(content='Data extracted', sentiment='neutral',bar_value=100, key='info2')
         
-    with cc[3]:
+    with cc[2]:
      #customise the the theming for a neutral content
      hc.info_card(content='Mapping done',key='sec',bar_value=100,sentiment='bad')    
 

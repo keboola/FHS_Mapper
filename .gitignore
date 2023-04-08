@@ -1,4 +1,5 @@
 .spyderproject/
+.spyproject/
 .streamlit/
 config.yaml
 status
