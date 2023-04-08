@@ -4,6 +4,7 @@ import streamlit_authenticator as stauth
 #from yaml.loader import SafeLoader
 import hydralit_components as hc
 import pandas as pd
+from src.settings import keboola_client, STATUS_TAB_ID
 
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
 
@@ -20,6 +21,12 @@ config_dict = {}
 
 # remaining_keys = []
 
+
+@st.cache_data
+def read_df(table_id, index_col=None, date_col=None):
+    keboola_client.tables.export_to_file(table_id, '.')
+    table_name = table_id.split(".")[-1]
+    return pd.read_csv(table_name, index_col=index_col, parse_dates=date_col)
 
 # 1. check the longest inner subscription
 
@@ -49,8 +56,6 @@ authenticator = stauth.Authenticate(
     config_dict['preauthorized']
 )
 
-
-
 # authenticator = stauth.Authenticate(
 #     config['credentials'],
 #     config['cookie']['name'],
@@ -59,17 +64,19 @@ authenticator = stauth.Authenticate(
 #     config['preauthorized']
 # )
 
-
-name, authentication_status, username = authenticator.login('Login', 'main')
+with st.sidebar:
+    name, authentication_status, username = authenticator.login('Login', 'main')
 
 if authentication_status:
-    authenticator.logout('Logout', 'main')
-    st.write(f'Welcome *{name}*')
-#    st.title('Some content')
+    with st.sidebar:
+        authenticator.logout('Logout', 'main')
+        st.write(f'Welcome *{name}*')
 elif authentication_status == False:
-    st.error('Username/password is incorrect')
+    with st.sidebar:
+        st.error('Username/password is incorrect')
 elif authentication_status == None:
-    st.warning('Please enter your username and password')
+    with st.sidebar:
+        st.warning('Please enter your username and password')
 
 # accessing the values via session state    
 # if st.session_state["authentication_status"]:
@@ -83,40 +90,51 @@ elif authentication_status == None:
 
 if authentication_status:
         
-    st.header("Workflow Progress")
+    st.markdown("### Workflow Progress")
     
     cc = st.columns(4)
     
     with cc[0]:
-     # can just use 'good', 'bad', 'neutral' sentiment to auto color the card
-        card1 = hc.info_card(content='Authorization done!', sentiment='good',bar_value=100)
-    
+        hc.info_card(content='Config(s) created' ,bar_value=100,sentiment='good', key='info1')
+
     with cc[1]:
-        hc.info_card(content='Config created' ,bar_value=100,sentiment='neutral', key='info1')
-    
+     # can just use 'good', 'bad', 'neutral' sentiment to auto color the card
+        card1 = hc.info_card(content='Authorization done!', sentiment='neutral',bar_value=100)
+        
     if st.session_state["username"]=='ondra':
-        st.write(f"hi {st.session_state['username']}")
         with cc[2]:
          hc.info_card(content='Data extracted', sentiment='bad',bar_value=100, key='info2')
 
     elif st.session_state["username"] == 'kritiga':
-        st.write(f"hi {st.session_state['name']}")
         with cc[2]:
          hc.info_card(content='Data extracted', sentiment='good',bar_value=100, key='info2')
     else:
-        st.write(f"hi {st.session_state['username']}")
-
         with cc[2]:
          hc.info_card(content='Data extracted', sentiment='neutral',bar_value=100, key='info2')
         
     with cc[3]:
      #customise the the theming for a neutral content
-     hc.info_card(content='Maybe...',key='sec',bar_value=100,sentiment='bad')    
+     hc.info_card(content='Mapping done',key='sec',bar_value=100,sentiment='bad')    
 
-    st.header("Mapping")
+    st.markdown("### Action Items")
+
+    st.markdown("1. Please **authorize** the configuration by clicking at [link](https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py)")
+    st.markdown("2. Please fill in **Company ID** and **Custom Calendar**")
 
 
-
+    with st.form("myform"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("Please enter company ID:")
+            ti = st.text_input(label="", label_visibility="collapsed")
+            
+        with col2:
+            st.markdown("Custom calendar:")
+            checkb = st.checkbox(label="")
+            
+        st.form_submit_button("Submit")
+        
     # replace by classes
     classes = ['Paris', 'Prague', 'Berlin', 'Rome']
     
@@ -125,9 +143,12 @@ if authentication_status:
     
     #classes_col, locations_col = st.columns(2)
     #row = st.columns(1)
-       
-    
-    
+
+    st.markdown("**Status Table**")       
+    status_df = read_df(STATUS_TAB_ID).head(3)
+    st.dataframe(status_df)
+    st.markdown("**Mapping Table**")
+
     df = pd.DataFrame(
         {"select mapping": locations}
     )

@@ -1,2 +1,4 @@
-.spyderproject
+.spyderproject/
+.streamlit/
 config.yaml
+status
