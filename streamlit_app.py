@@ -1,10 +1,23 @@
 import streamlit as st
 import pandas as pd
 from src.settings import STATUS_TAB_ID
-from src.helpers import read_df, authenticator
+from src.helpers import read_df, authenticator, parse_credentials
 from src.streamlit_widgets import WorkflowProgress, submit_form
+import streamlit_authenticator as stauth
 
 st.title('Firehouse Subs Mapper')
+
+config_dict = parse_credentials()
+
+authenticator = stauth.Authenticate(
+    config_dict['credentials'],
+    config_dict['cookie']['name'],
+    config_dict['cookie']['key'],
+    config_dict['cookie']['expiry_days'],
+    config_dict['preauthorized']
+)
+
+
 
 with st.sidebar:
     name, authentication_status, username = authenticator.login('Login', 'main')

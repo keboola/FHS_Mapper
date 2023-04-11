@@ -82,12 +82,3 @@ def parse_credentials():
     
     return config_dict
 
-config_dict = parse_credentials()
-
-authenticator = stauth.Authenticate(
-    config_dict['credentials'],
-    config_dict['cookie']['name'],
-    config_dict['cookie']['key'],
-    config_dict['cookie']['expiry_days'],
-    config_dict['preauthorized']
-)
