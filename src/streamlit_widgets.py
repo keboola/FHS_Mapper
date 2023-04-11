@@ -14,32 +14,20 @@ class WorkflowProgress():
     def __init__(self, user):
         self.user = user
         self.columns = st.columns(3)
-        self.authorization_sentiment = 'neutral'
-        self.data_sentiment = 'neutral'
-        self.mapping_sentiment = 'neutral'
-        self._update_sentiments()
+        self.authorization_sentiment = st.session_state.authorization_sentiment
+        self.data_sentiment = st.session_state.data_sentiment
+        self.mapping_sentiment = st.session_state.mapping_sentiment
+        #self._update_sentiments()
         self._prepare_progress_widget()
         
     def _prepare_progress_widget(self):
         
         with self.columns[0]:
-            self.info_card = hc.info_card(content='Authorization done!', sentiment=self.authorization_sentiment,bar_value=100, key='auth_card')
+            self.info_card = hc.info_card(content='Authorization done!', sentiment=self.authorization_sentiment, bar_value=100, key='auth_card')
         with self.columns[1]:
             hc.info_card(content='Data extracted', sentiment=self.data_sentiment, bar_value=100, key='data_card')
         with self.columns[2]:
             hc.info_card(content='Mapping done', sentiment=self.mapping_sentiment, bar_value=100, key='map_card')    
-
-    def _update_sentiments(self):
-        """
-        THIS METHOD SHOULD UPDATE THE WORKFLOW PROGRESS BASED ON NEW INFORMATION
-        COMING FROM STATUS TABLE
-
-        Returns
-        -------
-        None.
-
-        """
-        self.authorization_sentiment='neutral'
     
         
 def disable():

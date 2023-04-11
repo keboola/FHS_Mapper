@@ -1,11 +1,14 @@
 import streamlit as st
 #import pandas as pd
 #from src.settings import STATUS_TAB_ID
-from src.helpers import parse_credentials
+from src.helpers import parse_credentials, data_issues
 from src.streamlit_widgets import WorkflowProgress, submit_form, submit_form2
 import streamlit_authenticator as stauth
 
-st.title('Firehouse Subs Mapper')
+#st.title('Firehouse Subs Mapper')
+
+
+
 
 config_dict = parse_credentials()
 
@@ -19,7 +22,30 @@ authenticator = stauth.Authenticate(
 
         
 with st.sidebar:
+    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2, 3])
+
+    st.title('Firehouse Subs Mapper')
+
     name, authentication_status, username = authenticator.login('Login', 'main')
+
+#################
+if STEP == 1:
+    st.session_state.authorization_sentiment = 'neutral'
+    st.session_state.data_sentiment = 'neutral'
+    st.session_state.mapping_sentiment = 'neutral'
+
+if STEP == 2:
+    st.session_state.authorization_sentiment = 'good'
+    st.session_state.data_sentiment = 'bad'
+    st.session_state.mapping_sentiment = 'neutral'
+
+if STEP == 3:
+    st.session_state.authorization_sentiment = 'good'
+    st.session_state.data_sentiment = 'good'
+    st.session_state.mapping_sentiment = 'neutral'
+
+#################
+
 
 if authentication_status:
     with st.sidebar:
@@ -36,19 +62,24 @@ elif authentication_status == None:
 if not authentication_status:
     st.stop()
        
-st.markdown("### Workflow Progress")
+#st.markdown("### Workflow Progress")
 
 wc = WorkflowProgress("ondra")
-    
-# Initialize disabled for form_submit_button to False
-if "disabled" not in st.session_state:
-    st.session_state.disabled = False
 
-submitted = submit_form()
+if STEP == 1:    
+    # Initialize disabled for form_submit_button to False
+    if "disabled" not in st.session_state:
+        st.session_state.disabled = False
     
-if st.session_state.disabled:
-    submit_form2()
+    submitted = submit_form()
         
+    if st.session_state.disabled:
+        submit_form2()
+elif STEP == 2:
+    #st.write("fix data issues")
+    data_issues()
+else:
+    st.info("mapping functionality is about to be released")
     
 # # replace by classes
 # classes = ['Paris', 'Prague', 'Berlin', 'Rome']

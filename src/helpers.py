@@ -82,3 +82,6 @@ def parse_credentials():
     
     return config_dict
 
+def data_issues():
+    st.error("""Downloading data from Quickbooks failed. Our team is working on fixing the problems. 
+             For more information, please check your inbox and look for ticket Request #27324 """)
