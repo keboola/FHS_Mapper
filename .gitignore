@@ -3,3 +3,4 @@
 .streamlit/
 config.yaml
 status
+src/__pycache__/
