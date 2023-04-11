@@ -1,32 +1,15 @@
 import streamlit as st
 import streamlit_authenticator as stauth
-#import yaml
-#from yaml.loader import SafeLoader
 import hydralit_components as hc
 import pandas as pd
-from src.settings import keboola_client, STATUS_TAB_ID
+from src.settings import STATUS_TAB_ID
+from helpers import read_df
 
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
 
 st.title('Firehouse Subs Mapper')
 
-#st.write(st.secrets)
-
-#with open('config.yaml') as file:
-#    config = yaml.load(file, Loader=SafeLoader)
-
-#st.write(type(config))
-#st.write(config)
 config_dict = {}
-
-# remaining_keys = []
-
-
-@st.cache_data
-def read_df(table_id, index_col=None, date_col=None):
-    keboola_client.tables.export_to_file(table_id, '.')
-    table_name = table_id.split(".")[-1]
-    return pd.read_csv(table_name, index_col=index_col, parse_dates=date_col)
 
 # 1. check the longest inner subscription
 
@@ -56,13 +39,6 @@ authenticator = stauth.Authenticate(
     config_dict['preauthorized']
 )
 
-# authenticator = stauth.Authenticate(
-#     config['credentials'],
-#     config['cookie']['name'],
-#     config['cookie']['key'],
-#     config['cookie']['expiry_days'],
-#     config['preauthorized']
-# )
 
 with st.sidebar:
     name, authentication_status, username = authenticator.login('Login', 'main')
