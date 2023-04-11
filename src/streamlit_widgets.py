@@ -14,9 +14,9 @@ class WorkflowProgress():
     def __init__(self, user):
         self.user = user
         self.columns = st.columns(3)
-        self.authorization_sentiment = 'bad'
-        self.data_sentiment = 'bad'
-        self.mapping_sentiment = 'bad'
+        self.authorization_sentiment = 'neutral'
+        self.data_sentiment = 'neutral'
+        self.mapping_sentiment = 'neutral'
         self._update_sentiments()
         self._prepare_progress_widget()
         
@@ -39,22 +39,39 @@ class WorkflowProgress():
         None.
 
         """
-        self.authorization_sentiment='good'
+        self.authorization_sentiment='neutral'
     
         
+def disable():
+    st.session_state.disabled = True
         
         #self.authorization_sentiment='good'
 def submit_form():
+    
+        with st.form("submitform"):
+            st.markdown("1. Please fill in your **Company ID** and if you are using a financial calendar, then select the checkbox below **Financial Calendar**")
+
+            col1, col2 = st.columns(2)
             
-    with st.form("submitform"):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("Please enter company ID:")
-            st.text_input(label="aaa", label_visibility="collapsed", key='company_id')
+            with col1:
+                st.markdown("Company ID:")
+                st.text_input(label="aaa", label_visibility="collapsed", key='company_id')
+                
+            with col2:
+                st.markdown("Financial Calendar:")
+                st.checkbox(label="", key='custom_calendar')
+                
+            submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
+            if submitted:
+               st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {st.session_state.custom_calendar}")
+            return submitted
+    
             
-        with col2:
-            st.markdown("Custom calendar:")
-            st.checkbox(label="", key='custom_calendar')
+def submit_form2():
             
-        st.form_submit_button("Submit")
+    with st.form("submitform2"):
+        st.markdown("2. Now, please **authorize** the configuration by clicking at the buttom below")
+            
+        submitted = st.form_submit_button("Authorize", on_click=disable)
+        if submitted:
+            st.success("The configuration has been authorized. Now, data will be downloaded from Quickbooks.")
