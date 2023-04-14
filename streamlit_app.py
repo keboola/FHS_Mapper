@@ -2,15 +2,14 @@ import streamlit as st
 #import pandas as pd
 #from src.settings import STATUS_TAB_ID
 from src.helpers import parse_credentials, data_issues
-from src.streamlit_widgets import WorkflowProgress, submit_form, submit_form2
+from src.streamlit_widgets import WorkflowProgress, submit_form, render_clickable_link
 import streamlit_authenticator as stauth
-
-#st.title('Firehouse Subs Mapper')
-
-
-
+from PIL import Image
+import webbrowser
 
 config_dict = parse_credentials()
+
+webbrowser.open('www.google.com')
 
 authenticator = stauth.Authenticate(
     config_dict['credentials'],
@@ -19,38 +18,40 @@ authenticator = stauth.Authenticate(
     config_dict['cookie']['expiry_days'],
     config_dict['preauthorized']
 )
-
         
 with st.sidebar:
-    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2, 3])
+    image = Image.open('FHS_logo.png')
+    st.image(image, caption='')
 
-    st.title('Firehouse Subs Mapper')
+    #st.title('Quickbooks Automation Setup')
+    st.markdown('## **QUICKBOOKS AUTOMATION SETUP**')
+
+    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2])
 
     name, authentication_status, username = authenticator.login('Login', 'main')
 
-#################
+#----------------------------------------------------------
 if STEP == 1:
-    st.session_state.authorization_sentiment = 'neutral'
-    st.session_state.data_sentiment = 'neutral'
-    st.session_state.mapping_sentiment = 'neutral'
+    st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
+    st.session_state.data_sentiment = WorkflowProgress.theme_neutral
+    st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
+
+# if STEP == 2:
+#     st.session_state.authorization_sentiment = WorkflowProgress.theme_good
+#     st.session_state.data_sentiment = WorkflowProgress.theme_good
+#     st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
 
 if STEP == 2:
-    st.session_state.authorization_sentiment = 'good'
-    st.session_state.data_sentiment = 'bad'
-    st.session_state.mapping_sentiment = 'neutral'
-
-if STEP == 3:
-    st.session_state.authorization_sentiment = 'good'
-    st.session_state.data_sentiment = 'good'
-    st.session_state.mapping_sentiment = 'neutral'
-
-#################
+    st.session_state.authorization_sentiment = WorkflowProgress.theme_good
+    st.session_state.data_sentiment = WorkflowProgress.theme_good
+    st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
+#----------------------------------------------------------
 
 
 if authentication_status:
     with st.sidebar:
-        authenticator.logout('Logout', 'main')
         st.write(f'Welcome *{name}*')
+        authenticator.logout('Logout', 'main')
 elif authentication_status == False:
     with st.sidebar:
         st.error('Username/password is incorrect')
@@ -68,13 +69,14 @@ wc = WorkflowProgress("ondra")
 
 if STEP == 1:    
     # Initialize disabled for form_submit_button to False
-    if "disabled" not in st.session_state:
-        st.session_state.disabled = False
+    if "clicked" not in st.session_state:
+        st.session_state.clicked = False
     
     submitted = submit_form()
         
-    if st.session_state.disabled:
-        submit_form2()
+    if st.session_state.clicked:
+        render_clickable_link("https://www.firehousesubs.com/")
+        #submit_form2()
 elif STEP == 2:
     #st.write("fix data issues")
     data_issues()

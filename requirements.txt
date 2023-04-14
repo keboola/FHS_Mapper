@@ -2,4 +2,4 @@ streamlit==1.18
 streamlit-authenticator==0.2.1
 hydralit-components==1.0.10
 git+https://github.com/keboola/sapi-python-client.git
-
+st-click-detector==0.1

@@ -3,4 +3,5 @@
 .streamlit/
 config.yaml
 status
-src/__pycache__/
+src/__pycache__/*
+.DS_Store

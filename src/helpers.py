@@ -9,10 +9,8 @@ Created on Tue Apr 11 08:50:44 2023
 from src.settings import keboola_client
 import streamlit as st
 import pandas as pd
-import streamlit_authenticator as stauth
 
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
-
 
 @st.cache_data
 def read_df(table_id, index_col=None, date_col=None):
@@ -83,5 +81,5 @@ def parse_credentials():
     return config_dict
 
 def data_issues():
-    st.error("""Downloading data from Quickbooks failed. Our team is working on fixing the problems. 
+    st.error("""Downloading data from Quickbooks is not yet ready. Our team is monitoring the progress. 
              For more information, please check your inbox and look for ticket Request #27324 """)
