@@ -5,11 +5,8 @@ from src.helpers import parse_credentials, data_issues
 from src.streamlit_widgets import WorkflowProgress, submit_form, render_clickable_link
 import streamlit_authenticator as stauth
 from PIL import Image
-import webbrowser
 
 config_dict = parse_credentials()
-
-webbrowser.open('www.google.com')
 
 authenticator = stauth.Authenticate(
     config_dict['credentials'],

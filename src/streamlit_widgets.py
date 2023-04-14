@@ -75,36 +75,6 @@ def submit_form():
                st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {st.session_state.custom_calendar}")
             return submitted
 
-
-            
-# def submit_form2():
-            
-#     with st.form("submitform2"):
-#         st.markdown("2. Now, please **authorize** the configuration by clicking at the button below")
-            
-#         submitted = st.form_submit_button("Authorize", on_click=nav_to)
-#         ChangeButtonColour('Authorize', 'black', '#F8C471') # button txt to find, colour to assign
-
-
-#         url = 'https://stackoverflow.com'
-        
-#         st.markdown(f'''
-#         <a href={url}><button style="background-color:GreenYellow;">Stackoverflow</button></a>
-#         ''',
-#         unsafe_allow_html=True)
-
-#         content = """
-#                     <p>Check out <a href="https://www.freecodecamp.org/" id='Link code' target="_blank">freeCodeCamp</a>.</p>
-#                     """
-#         clicked = click_detector(content)
-
-
-#         if submitted:
-#             st.success("The configuration has been authorized. Now, data will be downloaded from Quickbooks.")
-#             #components.iframe("www.google.com")
-#             redirect('www.google.com')
-
-#             nav_to()
             
 def ChangeButtonColour(widget_label, font_color, background_color='transparent'):
     htmlstr = f"""
@@ -121,16 +91,15 @@ def ChangeButtonColour(widget_label, font_color, background_color='transparent')
     components.html(f"{htmlstr}", height=0, width=0)
 
 def render_clickable_link(url):
-    content = f'''
-                <p>2. Please authorize authorize to access <a href="{url}" id='Link code' target="_blank">QuickBooks</a>.</p>
-                '''
-    clicked = click_detector(content)
-    
-    if clicked:
-        st.success("QuickBooks account has been authorized")
-    else:
-        st.warning("The link is yet to be clicked")
-    
-    #st.markdown(f"**{clicked} clicked**" if clicked != "" else "**No click**")
-    
+    with st.container():
+        content = f'''
+                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please authorize to access <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
+                    '''
+        clicked = click_detector(content)
+        
+        if clicked:
+            st.success("QuickBooks account has been authorized")
+        else:
+            st.warning("The link is yet to be clicked")
+        
 
