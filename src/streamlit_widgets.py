@@ -104,6 +104,7 @@ def render_clickable_link(url):
         
 def render_selectboxes(n_select=3):
     with st.form("mapping_form"):
+        st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
         
         with col1:
@@ -120,5 +121,7 @@ def render_selectboxes(n_select=3):
                 with col2:
                     st.selectbox("", [i for i in range(n_select)], key=f"select{i}2", label_visibility='collapsed')
 
-        st.form_submit_button("Submit")
+        submitted = st.form_submit_button("Submit")
         ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
+        if submitted:
+            st.success("Classes and locations have been mapped.")

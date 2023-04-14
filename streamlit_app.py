@@ -75,7 +75,7 @@ if STEP == 1:
         #submit_form2()
 elif STEP == 2:
     #st.write("fix data issues")
-    data_issues()
+    #data_issues()
     render_selectboxes()
     
 else:
