@@ -3,6 +3,7 @@ import streamlit as st
 #from src.settings import STATUS_TAB_ID
 from src.helpers import parse_credentials, data_issues
 from src.streamlit_widgets import WorkflowProgress, submit_form, render_clickable_link
+from src.streamlit_widgets import render_selectboxes
 import streamlit_authenticator as stauth
 from PIL import Image
 
@@ -30,7 +31,6 @@ with st.sidebar:
 #----------------------------------------------------------
 if STEP == 1:
     st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
-    st.session_state.data_sentiment = WorkflowProgress.theme_neutral
     st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
 
 # if STEP == 2:
@@ -40,8 +40,7 @@ if STEP == 1:
 
 if STEP == 2:
     st.session_state.authorization_sentiment = WorkflowProgress.theme_good
-    st.session_state.data_sentiment = WorkflowProgress.theme_good
-    st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
+    st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
 #----------------------------------------------------------
 
 
@@ -77,6 +76,8 @@ if STEP == 1:
 elif STEP == 2:
     #st.write("fix data issues")
     data_issues()
+    render_selectboxes()
+    
 else:
     st.info("mapping functionality is about to be released")
     

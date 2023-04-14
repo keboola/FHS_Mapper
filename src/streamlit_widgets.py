@@ -33,11 +33,11 @@ class WorkflowProgress():
     def _prepare_progress_widget(self):
         
         with self.columns[0]:
-            self.info_card = hc.info_card(content='Authorization step', theme_override=self.authorization_sentiment, bar_value=100, key='auth_card')
+            self.info_card = hc.info_card(content='Authorization', theme_override=self.authorization_sentiment, bar_value=100, key='auth_card')
     #    with self.columns[1]:
     #        hc.info_card(content='Data extracted', theme_override=self.data_sentiment, bar_value=100, key='data_card')
         with self.columns[1]:
-            hc.info_card(content='Mapping done', theme_override=self.mapping_sentiment, bar_value=100, key='map_card')    
+            hc.info_card(content='Mapping', theme_override=self.mapping_sentiment, bar_value=100, key='map_card')    
     
         
 def disable():
@@ -93,7 +93,7 @@ def ChangeButtonColour(widget_label, font_color, background_color='transparent')
 def render_clickable_link(url):
     with st.container():
         content = f'''
-                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please authorize to access <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
+                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click here to authorize to access <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
                     '''
         clicked = click_detector(content)
         
@@ -102,4 +102,23 @@ def render_clickable_link(url):
         else:
             st.warning("The link is yet to be clicked")
         
+def render_selectboxes(n_select=3):
+    with st.form("mapping_form"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Location**")
+        
+        with col2:
+            st.markdown("**Class**")
+        
+        
+        for i in range(n_select):
+            with st.container():
+                with col1:
+                    st.selectbox("", [i for i in range(n_select)], index=i, key=f"select{i}1", label_visibility='collapsed', disabled=True)
+                with col2:
+                    st.selectbox("", [i for i in range(n_select)], key=f"select{i}2", label_visibility='collapsed')
 
+        st.form_submit_button("Submit")
+        ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
