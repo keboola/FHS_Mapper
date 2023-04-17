@@ -8,7 +8,9 @@ Created on Tue Apr 11 09:15:39 2023
 
 import streamlit as st
 import streamlit.components.v1 as components
-
+from src.helpers import write_file_submit_authorization
+from src.helpers import update_status_table
+from src.helpers import check_config_values
 import hydralit_components as hc
 import webbrowser
 from st_click_detector import click_detector
@@ -46,12 +48,20 @@ def disable():
 def clicked():
     st.session_state.clicked = True
 
+def clicked_submit():
+    st.session_state.clicked_submit = True
+
+def clicked_auth():
+    st.session_state.clicked_auth = True
+
+
+
 def open_url(url='www.google.com'):
     #webbrowser.open(url, 2)
     webbrowser.open_new_tab(url)
         
         #self.authorization_sentiment='good'
-def submit_form():
+def submit_form(status_df):
     
         with st.form("submitform"):
             st.markdown("1. Please fill in your **Quickbooks Company ID** and if you are using a financial calendar, then select the checkbox below **Using Financial Calendar**")
@@ -67,12 +77,25 @@ def submit_form():
                 st.checkbox(label="", key='custom_calendar')
                 
 #            submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
-            submitted = st.form_submit_button("Submit", on_click=clicked)
+            submitted = st.form_submit_button("Submit", on_click=clicked_submit)
 
             ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
 
             if submitted:
-               st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {st.session_state.custom_calendar}")
+                val_status = check_config_values()
+                st.session_state.clicked_auth = False
+                st.write(f"st.session_state.clicked_auth {st.session_state.clicked_auth}")
+                if val_status == 0:
+                    st.warning(
+                        f"""You are trying to replace previously input values (company_id = {st.session_state['company_id_old']}
+                            and XXX) for new values (company_id = {st.session_state['company_id']} and YYY). If this is not desired, 
+                            please change the values in the form and click "Submit" again.
+                        """
+                        )
+                else:
+                    st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {st.session_state.custom_calendar}")
+               
+                #write_file_submit_authorization(status_df)
             return submitted
 
             
@@ -90,14 +113,23 @@ def ChangeButtonColour(widget_label, font_color, background_color='transparent')
         """
     components.html(f"{htmlstr}", height=0, width=0)
 
-def render_clickable_link(url):
+def render_clickable_link(url, status_df):
     with st.container():
+        #st.session_state.clicked_auth = False
         content = f'''
                     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click here to authorize to access <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
                     '''
-        clicked = click_detector(content)
         
-        if clicked:
+        clicked_auth = click_detector(content, key="clicked_auth")
+        
+        if clicked_auth:
+            #st.session_state.clicked_auth = False
+            write_file_submit_authorization(status_df)
+
+            res, _ = update_status_table()
+            st.session_state['company_id_old'] = st.session_state['company_id']
+
+            #st.write("checking response", res)
             st.success("QuickBooks account has been authorized")
         else:
             st.warning("The link is yet to be clicked")
