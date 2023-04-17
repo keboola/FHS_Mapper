@@ -15,5 +15,5 @@ KEBOOLA_STACK = st.secrets["kbc_url"]
 KEBOOLA_TOKEN = st.secrets["kbc_token"]
 keboola_client = Client(KEBOOLA_STACK, KEBOOLA_TOKEN)
 
-STATUS_TAB_ID = 'out.c-create_configs.status'
+STATUS_TAB_ID = 'out.c-create_configs.status_2700'
 

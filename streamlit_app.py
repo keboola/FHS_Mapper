@@ -1,7 +1,9 @@
 import streamlit as st
 #import pandas as pd
-#from src.settings import STATUS_TAB_ID
-from src.helpers import parse_credentials, data_issues
+from src.settings import STATUS_TAB_ID
+from src.helpers import parse_credentials
+from src.helpers import read_df
+from src.helpers import determine_step
 from src.streamlit_widgets import WorkflowProgress, submit_form, render_clickable_link
 from src.streamlit_widgets import render_selectboxes
 import streamlit_authenticator as stauth
@@ -24,30 +26,62 @@ with st.sidebar:
     #st.title('Quickbooks Automation Setup')
     st.markdown('## **QUICKBOOKS AUTOMATION SETUP**')
 
-    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2])
-
+    
     name, authentication_status, username = authenticator.login('Login', 'main')
 
-#----------------------------------------------------------
-if STEP == 1:
-    st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
-    st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
 
-# if STEP == 2:
-#     st.session_state.authorization_sentiment = WorkflowProgress.theme_good
-#     st.session_state.data_sentiment = WorkflowProgress.theme_good
-#     st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
 
-if STEP == 2:
-    st.session_state.authorization_sentiment = WorkflowProgress.theme_good
-    st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
 #----------------------------------------------------------
 
 
 if authentication_status:
+    status_df = read_df(STATUS_TAB_ID, name)
+
+    if "company_id_old" not in st.session_state.keys(): 
+        st.session_state["company_id_old"] = status_df["company_id"].values[0]
+
+    step = determine_step(name)
+    
+    preselected_option = [1, 2, "DEBUG"].index(step)
+        
+    with st.sidebar:
+        STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2, "DEBUG"], index=preselected_option)
+
+
+    #----------------------------------------------------------
+    if STEP == 'DEBUG':
+        
+    
+        st.write(f"name = {name}, username={username}")
+        st.dataframe(status_df)
+        st.write(step)
+
+
+
+    if STEP == 1:
+        st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
+        st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
+    
+    # if STEP == 2:
+    #     st.session_state.authorization_sentiment = WorkflowProgress.theme_good
+    #     st.session_state.data_sentiment = WorkflowProgress.theme_good
+    #     st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
+    
+    if STEP == 2:
+        st.session_state.authorization_sentiment = WorkflowProgress.theme_good
+        st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
+
+
+    
     with st.sidebar:
         st.write(f'Welcome *{name}*')
-        authenticator.logout('Logout', 'main')
+        x = authenticator.logout('Logout', 'main')
+        if st.session_state['logout'] == True:
+            print("clear cache")
+            st.cache_data.clear()
+            st.session_state['logout'] = False
+        print(f"x {x}")
+        st.write(x)
 elif authentication_status == False:
     with st.sidebar:
         st.error('Username/password is incorrect')
@@ -65,14 +99,15 @@ wc = WorkflowProgress("ondra")
 
 if STEP == 1:    
     # Initialize disabled for form_submit_button to False
-    if "clicked" not in st.session_state:
-        st.session_state.clicked = False
+    if "clicked_submit" not in st.session_state:
+        st.session_state.clicked_submit = False
     
-    submitted = submit_form()
+    submitted = submit_form(status_df)
         
-    if st.session_state.clicked:
-        render_clickable_link("https://www.firehousesubs.com/")
-        #submit_form2()
+    if st.session_state.clicked_submit:
+    #if submitted:
+        render_clickable_link("https://www.firehousesubs.com/", status_df)
+
 elif STEP == 2:
     #st.write("fix data issues")
     #data_issues()
@@ -81,30 +116,3 @@ elif STEP == 2:
 else:
     st.info("mapping functionality is about to be released")
     
-# # replace by classes
-# classes = ['Paris', 'Prague', 'Berlin', 'Rome']
-
-# # replace by locations
-# locations = ['Italy', 'Czechia', 'Germany', 'France']
-
-# st.markdown("**Status Table**")       
-# status_df = read_df(STATUS_TAB_ID).head(3)
-# st.dataframe(status_df)
-# st.markdown("**Mapping Table**")
-
-# df = pd.DataFrame(
-#     {"select mapping": locations}
-# )
-# df["select mapping"] = (
-#     df["select mapping"].astype("category"))
-
-# s = df.style
-
-# cell_color = pd.DataFrame([True, True, True, True],
-#                           index=df.index,
-#                           columns=df.columns)
-# s.set_td_classes(cell_color)
-
-# df.index=classes
-
-# edited_df = st.experimental_data_editor(df, width=1000)
