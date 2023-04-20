@@ -10,3 +10,4 @@ creds.txt
 .status.csv
 .mapping.csv
 mapping_classes
+src/__pycache__/

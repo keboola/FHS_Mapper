@@ -24,9 +24,9 @@ with st.sidebar:
     st.image(image, caption='')
 
     st.markdown('## **QUICKBOOKS AUTOMATION SETUP**')
-    st.write('16195418809   6NgtrTENUGuQzV3')
-    st.write('17645916359   WO3rwjzGckHCjYg')
-    st.write('11605268179   yQtHWFa8qX2lZYn')
+#    st.write('16195418809   6NgtrTENUGuQzV3')
+#    st.write('17645916359   WO3rwjzGckHCjYg')
+#    st.write('11605268179   yQtHWFa8qX2lZYn')
     name, authentication_status, username = authenticator.login('Login', 'main')
 
 if authentication_status:
@@ -39,19 +39,13 @@ if authentication_status:
         st.session_state["custom_calendar_old"] = status_df["custom_calendar"].values[0]
 
     step = determine_step(name)
-    preselected_option = [1, 2, "DEBUG"].index(step)
+    preselected_option = [1, 2].index(step)
         
     with st.sidebar:
         STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2, "DEBUG"], index=preselected_option)
 
 
     #----------------------------------------------------------
-    if STEP == 'DEBUG':
-    
-        st.write(f"name = {name}, username={username}")
-        st.dataframe(status_df)
-        st.write(step)
-
     if STEP == 1:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
         st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral

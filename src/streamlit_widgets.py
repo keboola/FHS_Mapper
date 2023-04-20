@@ -129,7 +129,9 @@ def render_clickable_link(url, status_df):
             write_file_submit_authorization(status_df)
 
             res, _ = update_status_table()
-            st.session_state['company_id_old'] = st.session_state['company_id']
+            
+            if 'company_id' in st.session_state.keys():
+                st.session_state['company_id_old'] = st.session_state['company_id']
 
             #st.write("checking response", res)
             st.success("QuickBooks account has been authorized")
