@@ -1,6 +1,6 @@
 import streamlit as st
 #import pandas as pd
-from src.settings import STATUS_TAB_ID
+from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID
 from src.helpers import parse_credentials
 from src.helpers import read_df
 from src.helpers import determine_step
@@ -23,25 +23,22 @@ with st.sidebar:
     image = Image.open('FHS_logo.png')
     st.image(image, caption='')
 
-    #st.title('Quickbooks Automation Setup')
     st.markdown('## **QUICKBOOKS AUTOMATION SETUP**')
-
-    
+    st.write('16195418809   6NgtrTENUGuQzV3')
+    st.write('17645916359   WO3rwjzGckHCjYg')
+    st.write('11605268179   yQtHWFa8qX2lZYn')
     name, authentication_status, username = authenticator.login('Login', 'main')
 
-
-
-#----------------------------------------------------------
-
-
 if authentication_status:
-    status_df = read_df(STATUS_TAB_ID, name)
-
+    status_df = read_df(STATUS_TAB_ID, filter_col_name="username", filter_col_value=name)
+    config_id = status_df.config_id.values[0]
+    #st.write(config_id)
     if "company_id_old" not in st.session_state.keys(): 
         st.session_state["company_id_old"] = status_df["company_id"].values[0]
+    if "custom_calendar_old" not in st.session_state.keys(): 
+        st.session_state["custom_calendar_old"] = status_df["custom_calendar"].values[0]
 
     step = determine_step(name)
-    
     preselected_option = [1, 2, "DEBUG"].index(step)
         
     with st.sidebar:
@@ -50,38 +47,28 @@ if authentication_status:
 
     #----------------------------------------------------------
     if STEP == 'DEBUG':
-        
     
         st.write(f"name = {name}, username={username}")
         st.dataframe(status_df)
         st.write(step)
 
-
-
     if STEP == 1:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
         st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
-    
-    # if STEP == 2:
-    #     st.session_state.authorization_sentiment = WorkflowProgress.theme_good
-    #     st.session_state.data_sentiment = WorkflowProgress.theme_good
-    #     st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
-    
+        
     if STEP == 2:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_good
         st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
-
-
-    
+        mapping_df = read_df(MAPPING_CLASSES_TAB_ID, "config_id", config_id)
+        mapping_values = mapping_df.loc[mapping_df.type=='Class', "class_dep"].unique()
+        #st.write(mapping_df.loc[mapping_df.type=='Class', "class_dep"])
+    #   st.write(mapping_values)
     with st.sidebar:
         st.write(f'Welcome *{name}*')
         x = authenticator.logout('Logout', 'main')
         if st.session_state['logout'] == True:
-            print("clear cache")
             st.cache_data.clear()
             st.session_state['logout'] = False
-        print(f"x {x}")
-        st.write(x)
 elif authentication_status == False:
     with st.sidebar:
         st.error('Username/password is incorrect')
@@ -93,8 +80,6 @@ elif authentication_status == None:
 if not authentication_status:
     st.stop()
        
-#st.markdown("### Workflow Progress")
-
 wc = WorkflowProgress("ondra")
 
 if STEP == 1:    
@@ -106,12 +91,11 @@ if STEP == 1:
         
     if st.session_state.clicked_submit:
     #if submitted:
-        render_clickable_link("https://www.firehousesubs.com/", status_df)
+        url = status_df["OauthUrl"].values[0]
+        render_clickable_link(url, status_df)
 
 elif STEP == 2:
-    #st.write("fix data issues")
-    #data_issues()
-    render_selectboxes()
+    render_selectboxes(mapping_values, status_df)
     
 else:
     st.info("mapping functionality is about to be released")

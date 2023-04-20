@@ -5,3 +5,8 @@ config.yaml
 status
 src/__pycache__/*
 .DS_Store
+status_2700
+creds.txt
+.status.csv
+.mapping.csv
+mapping_classes

@@ -7,20 +7,24 @@ Created on Tue Apr 11 08:50:44 2023
 """
 
 from src.settings import keboola_client, STATUS_TAB_ID
+from src.settings import STREAMLIT_BUCKET_ID
 import streamlit as st
 import pandas as pd
+import datetime
 
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
 
 @st.cache_data
-def read_df(table_id, username, index_col=None, date_col=None):
+def read_df(table_id, filter_col_name, filter_col_value, index_col=None, date_col=None):
     keboola_client.tables.export_to_file(table_id, '.')
     table_name = table_id.split(".")[-1]
+    #st.write(filter_col_value)
     df = pd.read_csv(table_name, index_col=index_col, parse_dates=date_col)
-    return df.loc[df["username"]==username]
+    #print(df)
+    return df.loc[df[filter_col_name]==filter_col_value]
 
 def determine_step(username):
-    status_df = read_df(STATUS_TAB_ID, username)    
+    status_df = read_df(STATUS_TAB_ID, "username", username)    
 
     authorization = status_df.loc[status_df["username"]==username, "authorization_done"].values[0]
     if authorization==0:
@@ -121,10 +125,11 @@ def write_file_submit_authorization(status_df,
         company_id = st.session_state.get("company_id", "")
     
     if not financial_calendar:
-        company_id = st.session_state.get("company_id", False)
+        financial_calendar = st.session_state.get("custom_calendar", False)
     
     status_df["company_id"]=company_id
-    status_df["authorization_done"] = 1
+    status_df["custom_calendar"] = financial_calendar
+    status_df["authorization_timestamp"] = str(datetime.datetime.now())
     status_df.to_csv(file_path, index=False)
     
     return None
@@ -160,46 +165,13 @@ def update_status_table(
     return res, f"table {table_id} has been updated."
     
     
-    # try:
-    #     try:
-    #         tables = client.tables.list()
-
-    #     except Exception as e:
-    #         return str(e)
-    #     # there will be 0 or 1 hit
-    #     table_def = list(filter(lambda x: x['bucket']['id']==bucket_id and x['name']==table_name, tables))
-    #     if table_def:
-    #         table_id = table_def[0]['id']
-    #         # table already exists --> load
-    #         try:
-    #             _= client.tables.load(table_id=table_id,
-    #                                 file_path=file_path,
-    #                                 is_incremental=is_incremental, 
-    #                                 delimiter=delimiter,
-    #                                 enclosure=enclosure, 
-    #                                 escaped_by=escaped_by,
-    #                                 columns=columns,
-    #                                 without_headers=without_headers) 
-    #             return f"{table_name} has been updated."
-    #         except Exception as e:
-    #             return str(e)    
-    #     else:
-    #         # table does not exist --> create
-    #         try:
-    #             return client.tables.create(name=table_name,
-    #                                 bucket_id=bucket_id,
-    #                                 file_path=file_path,
-    #                                 primary_key=primary_key) + " successfully created!!"
-    #         except Exception as e:
-    #             return str(e)   
-    # except Exception as e:
-    #     return str(e)         
-    
 def check_config_values():
     
     if (
             (st.session_state["company_id"]==st.session_state["company_id_old"]) or 
-            (st.session_state["company_id_old"] in [None, ""])
+            (st.session_state["company_id_old"] in [None, ""])) and (
+            (st.session_state["custom_calendar"]==st.session_state["custom_calendar_old"]) or
+            (st.session_state["custom_calendar_old"]  in [None, ""])
         ):
         return 1
     else:
@@ -208,7 +180,112 @@ def check_config_values():
         
         
     # fill logic for custom calendar
+def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     
+    config_id = status_df.config_id.values[0]
+    #class_{i}
+    
+    classes = sorted([ k for k in st.session_state.keys() if k.startswith('class_')])
+    locations = sorted([ k for k in st.session_state.keys() if k.startswith('location_')])
+    
+    to_dict = []
+    
+    mapping_timestamp = str(datetime.datetime.now())
+    for c, l in zip(classes, locations):
+        inner_dict = {}
+        inner_dict['config_id'] = config_id
+        inner_dict['class_dep'] = st.session_state[c]
+        inner_dict['location'] = st.session_state[l]
+        inner_dict['timestamp'] = mapping_timestamp
+        to_dict.append(inner_dict)
+        
+    mapdf = pd.DataFrame(to_dict)
+    print(mapdf)
+    mapdf.to_csv(file_path, index=False)
+    return file_path
+
+def create_or_update_mapping(table_name,
+        keboola_client=keboola_client,
+        bucket_id=STREAMLIT_BUCKET_ID,
+        file_path='.mapping.csv',
+        primary_key='xxx', # define primary key
+        is_incremental=True, 
+        delimiter=',',
+        enclosure='"', 
+        escaped_by='', 
+        columns=["config_id", "class_dep"],
+        without_headers=False):
+    """
+    The function creates or incrementally updates the mapping table. 
+    Mapping table should be keyed by hash(config_id+class)
+
+    Parameters
+    ----------
+    table_name : TYPE
+        DESCRIPTION.
+    keboola_client : TYPE, optional
+        DESCRIPTION. The default is keboola_client.
+    bucket_id : TYPE, optional
+        DESCRIPTION. The default is 'out.c-create_configs'.
+    file_path : TYPE, optional
+        DESCRIPTION. The default is '.mapping.csv'.
+    primary_key : TYPE, optional
+        DESCRIPTION. The default is 'xxx'.
+    # define primary key        is_incremental : TYPE, optional
+        DESCRIPTION. The default is False.
+    delimiter : TYPE, optional
+        DESCRIPTION. The default is ','.
+    enclosure : TYPE, optional
+        DESCRIPTION. The default is '"'.
+    escaped_by : TYPE, optional
+        DESCRIPTION. The default is ''.
+    columns : TYPE, optional
+        DESCRIPTION. The default is None.
+    without_headers : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    
+    # check whether a table in the bucket exists. If so, retrieve its table_id
+    try:
+        try:
+            tables = keboola_client.tables.list()
+
+        except Exception as e:
+            return str(e)
+        # there will be 0 or 1 hit
+        table_def = list(filter(lambda x: x['bucket']['id']==bucket_id and x['name']==table_name, tables))
+        if table_def:
+            table_id = table_def[0]['id']
+            # table already exists --> load
+            try:
+                _= keboola_client.tables.load(table_id=table_id,
+                                    file_path=file_path,
+                                    is_incremental=is_incremental, 
+                                    delimiter=delimiter,
+                                    enclosure=enclosure, 
+                                    escaped_by=escaped_by,
+                                    columns=columns,
+                                    without_headers=without_headers) 
+                return True, f"{table_name} table has been updated."
+            except Exception as e:
+                return False, str(e)    
+        else:
+            # table does not exist --> create
+            try:
+                return True, keboola_client.tables.create(name=table_name,
+                                    bucket_id=bucket_id,
+                                    file_path=file_path,
+                                    primary_key=columns) + "table has been successfully created!!"
+            except Exception as e:
+                return False, str(e)   
+    except Exception as e:
+        return str(e)             
     
         
         

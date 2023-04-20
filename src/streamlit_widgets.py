@@ -11,6 +11,8 @@ import streamlit.components.v1 as components
 from src.helpers import write_file_submit_authorization
 from src.helpers import update_status_table
 from src.helpers import check_config_values
+from src.helpers import prepare_mapping_file
+from src.helpers import create_or_update_mapping
 import hydralit_components as hc
 import webbrowser
 from st_click_detector import click_detector
@@ -84,7 +86,7 @@ def submit_form(status_df):
             if submitted:
                 val_status = check_config_values()
                 st.session_state.clicked_auth = False
-                st.write(f"st.session_state.clicked_auth {st.session_state.clicked_auth}")
+                #st.write(f"st.session_state.clicked_auth {st.session_state.clicked_auth}")
                 if val_status == 0:
                     st.warning(
                         f"""You are trying to replace previously input values (company_id = {st.session_state['company_id_old']}
@@ -134,26 +136,36 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(n_select=3):
+def render_selectboxes(mapping_values_classes, status_df, mapping_values_locations = list(range(8))):
     with st.form("mapping_form"):
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
         
+        mapping_values_locations = ["NA"] + mapping_values_locations
+        mapping_values_locations = list(set(mapping_values_locations))
+        idx = mapping_values_locations.index("NA")
+        
         with col1:
-            st.markdown("**Location**")
+            st.markdown("**Class or Department**")
         
         with col2:
-            st.markdown("**Class**")
+            st.markdown("**Location**")
         
+        nmapping = mapping_values_classes.shape[0]
         
-        for i in range(n_select):
-            with st.container():
+        for i in range(nmapping):
                 with col1:
-                    st.selectbox("", [i for i in range(n_select)], index=i, key=f"select{i}1", label_visibility='collapsed', disabled=True)
+                    st.selectbox("cls", mapping_values_classes, index=i, key=f"class_{i}", label_visibility='collapsed', disabled=True)
                 with col2:
-                    st.selectbox("", [i for i in range(n_select)], key=f"select{i}2", label_visibility='collapsed')
+                    st.selectbox("loc", mapping_values_locations, index=idx,  key=f"location_{i}", label_visibility='collapsed')
 
         submitted = st.form_submit_button("Submit")
         ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
         if submitted:
-            st.success("Classes and locations have been mapped.")
+            path = prepare_mapping_file(status_df)
+            result, message=create_or_update_mapping('mapping', file_path=path)
+            if result:
+                st.success(message)
+            else:
+                #print(e)
+                st.error("Something is going wrong, please contact admins.")
