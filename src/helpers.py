@@ -27,7 +27,7 @@ def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "username", username)    
 
     authorization = status_df.loc[status_df["username"]==username, "authorization_done"].values[0]
-    if authorization==0:
+    if authorization=='':
         step = 1
     else:
         step = 2
@@ -200,7 +200,6 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
         to_dict.append(inner_dict)
         
     mapdf = pd.DataFrame(to_dict)
-    print(mapdf)
     mapdf.to_csv(file_path, index=False)
     return file_path
 

@@ -143,6 +143,9 @@ def render_selectboxes(mapping_values_classes, status_df, mapping_values_locatio
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
         
+        if len(mapping_values_classes)==0:
+            st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
+        
         mapping_values_locations = ["NA"] + mapping_values_locations
         mapping_values_locations = list(set(mapping_values_locations))
         idx = mapping_values_locations.index("NA")
