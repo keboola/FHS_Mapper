@@ -27,10 +27,10 @@ def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "username", username)    
 
     authorization = status_df.loc[status_df["username"]==username, "authorization_done"].values[0]
-    if authorization=='':
-        step = 1
-    else:
+    if authorization==1:
         step = 2
+    else:
+        step = 1
     return step    
     
 #@st.cache_data
