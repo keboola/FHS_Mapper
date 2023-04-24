@@ -26,7 +26,7 @@ def read_df(table_id, filter_col_name, filter_col_value, index_col=None, date_co
 def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "username", username)    
 
-    authorization = status_df.loc[status_df["username"]==username, "authorization_done"].values[0]
+    authorization = status_df.loc[status_df["username"]==username, "config_has_data"].values[0]
     if authorization==1:
         step = 2
     else:
@@ -128,7 +128,7 @@ def write_file_submit_authorization(status_df,
         financial_calendar = st.session_state.get("custom_calendar", False)
     
     status_df["company_id"]=company_id
-    status_df["custom_calendar"] = financial_calendar
+    status_df["custom_calendar"] = int(financial_calendar)
     status_df["authorization_timestamp"] = str(datetime.datetime.now())
     status_df.to_csv(file_path, index=False)
     
@@ -146,7 +146,7 @@ def update_status_table(
         delimiter=',',
         enclosure='"', 
         escaped_by='', 
-        columns=['config_id'],
+        columns=['username'],
         without_headers=False
         ):
     
@@ -182,7 +182,7 @@ def check_config_values():
     # fill logic for custom calendar
 def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     
-    config_id = status_df.config_id.values[0]
+    username = status_df.username.values[0]
     #class_{i}
     
     classes = sorted([ k for k in st.session_state.keys() if k.startswith('class_')])
@@ -193,7 +193,7 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     mapping_timestamp = str(datetime.datetime.now())
     for c, l in zip(classes, locations):
         inner_dict = {}
-        inner_dict['config_id'] = config_id
+        inner_dict['username'] = username
         inner_dict['class_dep'] = st.session_state[c]
         inner_dict['location'] = st.session_state[l]
         inner_dict['timestamp'] = mapping_timestamp

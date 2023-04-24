@@ -77,7 +77,10 @@ def submit_form(status_df):
             with col2:
                 st.markdown("Using Financial Calendar:")
                 st.checkbox(label="", key='custom_calendar')
-                
+            
+            #if st.session_state['custom_calendar']:
+            #    st.session_state['custom_calendar']=1
+            
 #            submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
             submitted = st.form_submit_button("Submit", on_click=clicked_submit)
 
@@ -90,12 +93,12 @@ def submit_form(status_df):
                 if val_status == 0:
                     st.warning(
                         f"""You are trying to replace previously input values (company_id = {st.session_state['company_id_old']}
-                            and XXX) for new values (company_id = {st.session_state['company_id']} and YYY). If this is not desired, 
+                            and {st.session_state['custom_calendar_old']}) for new values (company_id = {st.session_state['company_id']} and {int(st.session_state['custom_calendar'])}). If this is not desired, 
                             please change the values in the form and click "Submit" again.
                         """
                         )
                 else:
-                    st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {st.session_state.custom_calendar}")
+                    st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {int(st.session_state.custom_calendar)}")
                
                 #write_file_submit_authorization(status_df)
             return submitted
@@ -119,7 +122,7 @@ def render_clickable_link(url, status_df):
     with st.container():
         #st.session_state.clicked_auth = False
         content = f'''
-                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click here to authorize to access <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
+                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click at the hyperlink to authorize the access to <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
                     '''
         
         clicked_auth = click_detector(content, key="clicked_auth")
@@ -132,6 +135,10 @@ def render_clickable_link(url, status_df):
             
             if 'company_id' in st.session_state.keys():
                 st.session_state['company_id_old'] = st.session_state['company_id']
+                
+            if 'custom_calendar' in st.session_state.keys():
+                st.session_state['custom_calendar_old'] = int(st.session_state['custom_calendar'])
+
 
             #st.write("checking response", res)
             st.success("QuickBooks account has been authorized")
