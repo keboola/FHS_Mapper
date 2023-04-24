@@ -15,13 +15,15 @@ import datetime
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
 
 @st.cache_data
-def read_df(table_id, filter_col_name, filter_col_value, index_col=None, date_col=None):
+def read_df(table_id, filter_col_name=None, filter_col_value=None, index_col=None, date_col=None):
     keboola_client.tables.export_to_file(table_id, '.')
     table_name = table_id.split(".")[-1]
     #st.write(filter_col_value)
     df = pd.read_csv(table_name, index_col=index_col, parse_dates=date_col)
-    #print(df)
-    return df.loc[df[filter_col_name]==filter_col_value]
+    if filter_col_name:
+        return df.loc[df[filter_col_name]==filter_col_value]
+    else:
+        return df
 
 def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "username", username)    

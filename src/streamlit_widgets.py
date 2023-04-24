@@ -13,9 +13,14 @@ from src.helpers import update_status_table
 from src.helpers import check_config_values
 from src.helpers import prepare_mapping_file
 from src.helpers import create_or_update_mapping
+from src.helpers import read_df
+from src.settings import RESTAURANTS_TAB_ID, MAPPING_TAB_ID
 import hydralit_components as hc
 import webbrowser
 from st_click_detector import click_detector
+
+restaurants_df = read_df(RESTAURANTS_TAB_ID)
+mapping_df = read_df(MAPPING_TAB_ID)
 
 class WorkflowProgress():
     theme_bad = {'bgcolor': '#FFF0F0','progress_color': 'red', 'title_color': 'red','content_color': 'red','icon_color': 'red', 'icon': 'fa fa-times-circle'}
@@ -145,16 +150,25 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(mapping_values_classes, status_df, mapping_values_locations = list(range(8))):
+def render_selectboxes(mapping_values_classes, status_df):
     with st.form("mapping_form"):
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
         
+        config_id = status_df.config_id.values[0]
+        current_mapping = mapping_df.loc[mapping_df.config_id=='957469662', ["class_dep", "location"]]
+        #current_mapping = mapping_df.loc[mapping_df.config_id==config_id, ["class_dep", "location"]]
+
+        st.write(current_mapping)
+        
+        
+        mapping_values_classes = list(range(0, 3))
+        nmapping = 3
         if len(mapping_values_classes)==0:
             st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
         
-        mapping_values_locations = ["NA"] + mapping_values_locations
-        mapping_values_locations = list(set(mapping_values_locations))
+        mapping_values_locations = ["NA"] + restaurants_df.CenterName.values.tolist() 
+        mapping_values_locations = sorted(list(set(mapping_values_locations)))
         idx = mapping_values_locations.index("NA")
         
         with col1:
@@ -163,7 +177,7 @@ def render_selectboxes(mapping_values_classes, status_df, mapping_values_locatio
         with col2:
             st.markdown("**Location**")
         
-        nmapping = mapping_values_classes.shape[0]
+        #nmapping = mapping_values_classes.shape[0]
         
         for i in range(nmapping):
                 with col1:
