@@ -159,10 +159,10 @@ def render_selectboxes(mapping_values_classes, status_df):
         current_mapping = mapping_df.loc[mapping_df.config_id=='957469662', ["class_dep", "location"]]
         #current_mapping = mapping_df.loc[mapping_df.config_id==config_id, ["class_dep", "location"]]
 
-        st.write(current_mapping)
+        #st.write(current_mapping)
         
         
-        mapping_values_classes = list(range(0, 3))
+        #mapping_values_classes = list(range(0, 3))
         nmapping = 3
         if len(mapping_values_classes)==0:
             st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
