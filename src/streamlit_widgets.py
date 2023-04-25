@@ -163,7 +163,7 @@ def render_selectboxes(mapping_values_classes, status_df):
         
         
         #mapping_values_classes = list(range(0, 3))
-        if mapping_values_classes:
+        if mapping_values_classes.shape[0]>0:
             nmapping = mapping_values_classes.shape[0]
         else:
             nmapping = 3
