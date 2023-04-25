@@ -51,7 +51,7 @@ if authentication_status:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_good
         st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
         mapping_df = read_df(MAPPING_CLASSES_TAB_ID, "config_id", config_id, dtype={'config_id':str})
-        st.dataframe(mapping_df)
+        #st.dataframe(mapping_df)
         mapping_values = mapping_df.loc[mapping_df.type=='Class', "class_dep"].unique()
         #st.write(mapping_df.loc[mapping_df.type=='Class', "class_dep"])
     #   st.write(mapping_values)
