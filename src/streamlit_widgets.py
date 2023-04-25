@@ -197,5 +197,5 @@ def render_selectboxes(mapping_values_classes, status_df):
             if result:
                 st.success(message)
             else:
-                #print(e)
+                print(message)
                 st.error("Something is going wrong, please contact admins.")
