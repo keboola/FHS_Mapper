@@ -26,9 +26,9 @@ def read_df(table_id, filter_col_name=None, filter_col_value=None, index_col=Non
         return df
 
 def determine_step(username):
-    status_df = read_df(STATUS_TAB_ID, "username", username)    
+    status_df = read_df(STATUS_TAB_ID, "owner_id", username)    
 
-    authorization = status_df.loc[status_df["username"]==username, "config_has_data"].values[0]
+    authorization = status_df.loc[status_df["owner_id"]==username, "config_has_data"].values[0]
     if authorization==1:
         step = 2
     else:
@@ -78,11 +78,14 @@ def parse_credentials():
     # 1. check the longest inner subscription
     
     # at this point, I do not check for preauthorized or cookies
-    for key in st.secrets:
+    
+    cred_keys = [key for key in st.secrets if "credentials" in key]
+    
+    for key in cred_keys:
         creds_dict = config_dict.get("credentials", dict())
         username_dict = creds_dict.get("usernames", dict())    
-        username = key.split('_')[-2]
-        key_end = key.split('_')[-1]
+        username = key.split('-')[-2]
+        key_end = key.split('-')[-1]
         user_dict =  username_dict.get(username, dict())
         user_dict[key_end] = st.secrets[key]
         username_dict[username] = user_dict

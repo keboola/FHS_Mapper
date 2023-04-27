@@ -27,7 +27,7 @@ with st.sidebar:
     name, authentication_status, username = authenticator.login('Login', 'main')
 
 if authentication_status:
-    status_df = read_df(STATUS_TAB_ID, filter_col_name="username", filter_col_value=name, dtype={'config_id':str})
+    status_df = read_df(STATUS_TAB_ID, filter_col_name="owner_id", filter_col_value=name, dtype={'config_id':str})
     config_id = status_df.config_id.values[0]
     #st.write(config_id)
     if "company_id_old" not in st.session_state.keys(): 

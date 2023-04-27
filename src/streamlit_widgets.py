@@ -127,7 +127,7 @@ def render_clickable_link(url, status_df):
     with st.container():
         #st.session_state.clicked_auth = False
         content = f'''
-                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click at the hyperlink to authorize the access to <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
+                    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. &nbsp;&nbsp;&nbsp;&nbsp;Please click at the hyperlink to access authorization wizard <a href="{url}" id='Link code' target="_blank" style="sans serif" >QuickBooks</a>.</p>
                     '''
         
         clicked_auth = click_detector(content, key="clicked_auth")
@@ -146,7 +146,7 @@ def render_clickable_link(url, status_df):
 
 
             #st.write("checking response", res)
-            st.success("QuickBooks account has been authorized")
+            st.success("QuickBooks account authorization is in progress. Please log out and wait for an email notification to proceed (if you do not receive it shortly, please check also your spam folder).")
         else:
             st.warning("The link is yet to be clicked")
         
