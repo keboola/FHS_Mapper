@@ -187,7 +187,7 @@ def check_config_values():
     # fill logic for custom calendar
 def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     
-    username = status_df.username.values[0]
+    username = status_df.owner_id.values[0]
     #class_{i}
     
     classes = sorted([ k for k in st.session_state.keys() if k.startswith('class_')])
