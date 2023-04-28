@@ -12,7 +12,7 @@ from src.helpers import write_file_submit_authorization
 from src.helpers import update_status_table
 from src.helpers import check_config_values
 from src.helpers import prepare_mapping_file
-from src.helpers import create_or_update_mapping
+from src.helpers import create_or_update_table
 from src.helpers import read_df
 from src.settings import RESTAURANTS_TAB_ID, MAPPING_TAB_ID
 import hydralit_components as hc
@@ -81,7 +81,7 @@ def submit_form(status_df):
                 
             with col2:
                 st.markdown("Using Financial Calendar:")
-                st.checkbox(label="", key='custom_calendar')
+                st.checkbox(label="custom_cal_check", key='custom_calendar', label_visibility="collapsed")
             
             #if st.session_state['custom_calendar']:
             #    st.session_state['custom_calendar']=1
@@ -135,7 +135,13 @@ def render_clickable_link(url, status_df):
         if clicked_auth:
             #st.session_state.clicked_auth = False
             write_file_submit_authorization(status_df)
-
+            status_df.loc[:, ["owner_id", "config_id"]].to_csv(".flow2trigger.csv", index=False)
+            
+            res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
+            
+            #if not res:
+            print("trying to create trigger table:" + message)
+            st.write(message)
             res, _ = update_status_table()
             
             if 'company_id' in st.session_state.keys():
@@ -150,16 +156,12 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(mapping_values_classes, status_df):
+def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False):
     with st.form("mapping_form"):
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
         
-        config_id = status_df.config_id.values[0]
-        current_mapping = mapping_df.loc[mapping_df.config_id=='957469662', ["class_dep", "location"]]
-        #current_mapping = mapping_df.loc[mapping_df.config_id==config_id, ["class_dep", "location"]]
-
-        #st.write(current_mapping)
+        
         
         
         #mapping_values_classes = list(range(0, 3))
@@ -171,7 +173,11 @@ def render_selectboxes(mapping_values_classes, status_df):
         if len(mapping_values_classes)==0:
             st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
         
-        mapping_values_locations = ["NA"] + restaurants_df.CenterName.values.tolist() 
+        if debug:
+            owner_id='Jason_Steele' 
+            st.warning("DEBUG MODE TURNED ON")
+        
+        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.owner_id==owner_id, "CenterName"].values.tolist() 
         mapping_values_locations = sorted(list(set(mapping_values_locations)))
         idx = mapping_values_locations.index("NA")
         
@@ -179,7 +185,7 @@ def render_selectboxes(mapping_values_classes, status_df):
             st.markdown("**Class or Department**")
         
         with col2:
-            st.markdown("**Location**")
+            st.markdown("**Restaurant name**")
         
         #nmapping = mapping_values_classes.shape[0]
         
@@ -189,11 +195,12 @@ def render_selectboxes(mapping_values_classes, status_df):
                 with col2:
                     st.selectbox("loc", mapping_values_locations, index=idx,  key=f"location_{i}", label_visibility='collapsed')
 
+        st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.")
         submitted = st.form_submit_button("Submit")
         ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
         if submitted:
             path = prepare_mapping_file(status_df)
-            result, message=create_or_update_mapping('mapping', file_path=path)
+            result, message=create_or_update_table('mapping', file_path=path)
             if result:
                 st.success(message)
             else:

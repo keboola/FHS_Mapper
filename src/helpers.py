@@ -198,7 +198,7 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     mapping_timestamp = str(datetime.datetime.now())
     for c, l in zip(classes, locations):
         inner_dict = {}
-        inner_dict['username'] = username
+        inner_dict['owner_id'] = username
         inner_dict['class_dep'] = st.session_state[c]
         inner_dict['location'] = st.session_state[l]
         inner_dict['timestamp'] = mapping_timestamp
@@ -208,7 +208,7 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     mapdf.to_csv(file_path, index=False)
     return file_path
 
-def create_or_update_mapping(table_name,
+def create_or_update_table(table_name,
         keboola_client=keboola_client,
         bucket_id=STREAMLIT_BUCKET_ID,
         file_path='.mapping.csv',
@@ -217,7 +217,7 @@ def create_or_update_mapping(table_name,
         delimiter=',',
         enclosure='"', 
         escaped_by='', 
-        columns=["config_id", "class_dep"],
+        columns=["owner_id", "class_dep"],
         without_headers=False):
     """
     The function creates or incrementally updates the mapping table. 
@@ -285,11 +285,11 @@ def create_or_update_mapping(table_name,
                 return True, keboola_client.tables.create(name=table_name,
                                     bucket_id=bucket_id,
                                     file_path=file_path,
-                                    primary_key=columns) + "table has been successfully created!!"
+                                    primary_key=columns) + " table has been successfully created!!"
             except Exception as e:
                 return False, str(e)   
     except Exception as e:
-        return str(e)             
+        return False, str(e)             
     
         
         

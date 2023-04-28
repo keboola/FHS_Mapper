@@ -1,6 +1,6 @@
 import streamlit as st
 #import pandas as pd
-from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID
+from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID, DEBUG
 from src.helpers import parse_credentials
 from src.helpers import read_df
 from src.helpers import determine_step
@@ -35,11 +35,11 @@ if authentication_status:
     if "custom_calendar_old" not in st.session_state.keys(): 
         st.session_state["custom_calendar_old"] = status_df["custom_calendar"].values[0]
 
-    step = determine_step(name)
-    preselected_option = [1, 2].index(step)
+    STEP = determine_step(name)
+    preselected_option = [1, 2].index(STEP)
         
-    with st.sidebar:
-        STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2], index=preselected_option)
+    #with st.sidebar:
+    #    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2], index=preselected_option)
 
 
     #----------------------------------------------------------
@@ -91,7 +91,7 @@ if STEP == 1:
         render_clickable_link(url, status_df)
 
 elif STEP == 2:
-    render_selectboxes(mapping_values, status_df)
+    render_selectboxes(mapping_values, status_df, owner_id=name, debug=DEBUG)
     
 else:
     st.info("mapping functionality is about to be released")
