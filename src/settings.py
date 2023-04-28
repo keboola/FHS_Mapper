@@ -20,4 +20,4 @@ MAPPING_CLASSES_TAB_ID = 'in.c-StreamlitIO.mapping_classes'
 STREAMLIT_BUCKET_ID = 'in.c-StreamlitIO'
 RESTAURANTS_TAB_ID = 'in.c-StreamlitIO.restaurant_aux'
 MAPPING_TAB_ID = 'in.c-StreamlitIO.mapping'
-DEBUG = True
+DEBUG = False

@@ -26,6 +26,14 @@ with st.sidebar:
     name, authentication_status, username = authenticator.login('Login', 'main')
 
 if authentication_status:
+
+    with st.sidebar:
+        st.write(f'Welcome *{name}*')
+        x = authenticator.logout('Logout', 'main')
+        if st.session_state['logout'] == True:
+            st.cache_data.clear()
+            st.session_state['logout'] = False
+
     status_df = read_df(STATUS_TAB_ID, filter_col_name="owner_id", filter_col_value=name, dtype={'config_id':str})
     config_id = status_df.config_id.values[0]
     #st.write(config_id)
@@ -58,12 +66,6 @@ if authentication_status:
         else:
             mapping_values = mapping_df.loc[mapping_df.type=='Department', "class_dep"].unique()
 
-    with st.sidebar:
-        st.write(f'Welcome *{name}*')
-        x = authenticator.logout('Logout', 'main')
-        if st.session_state['logout'] == True:
-            st.cache_data.clear()
-            st.session_state['logout'] = False
 elif authentication_status == False:
     with st.sidebar:
         st.error('Username/password is incorrect')
