@@ -18,6 +18,8 @@ from src.settings import RESTAURANTS_TAB_ID, MAPPING_TAB_ID
 import hydralit_components as hc
 import webbrowser
 from st_click_detector import click_detector
+import pandas as pd
+import datetime
 
 restaurants_df = read_df(RESTAURANTS_TAB_ID)
 mapping_df = read_df(MAPPING_TAB_ID)
@@ -139,9 +141,8 @@ def render_clickable_link(url, status_df):
             
             res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
             
-            #if not res:
-            print("trying to create trigger table:" + message)
-            st.write(message)
+            if not res:
+                print("trying to create trigger table:" + message)
             res, _ = update_status_table()
             
             if 'company_id' in st.session_state.keys():
@@ -153,6 +154,8 @@ def render_clickable_link(url, status_df):
 
             #st.write("checking response", res)
             st.success("QuickBooks account authorization is in progress. Please log out and wait for an email notification to proceed (if you do not receive it shortly, please check also your spam folder).")
+            st.cache_data.clear()
+
         else:
             st.warning("The link is yet to be clicked")
         
@@ -195,14 +198,22 @@ def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False)
                 with col2:
                     st.selectbox("loc", mapping_values_locations, index=idx,  key=f"location_{i}", label_visibility='collapsed')
 
-        st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.")
+        text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
+        
+        text_df = pd.DataFrame([{'owner_id':owner_id, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
+        text_df.to_csv('.text.csv', index=False)
+        
         submitted = st.form_submit_button("Submit")
         ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
         if submitted:
             path = prepare_mapping_file(status_df)
             result, message=create_or_update_table('mapping', file_path=path)
-            if result:
+            result2, message2=create_or_update_table('text_messages', file_path='.text.csv', columns=['owner_id'])
+
+            if result and result2:
                 st.success(message)
+
             else:
                 print(message)
+                print(message2)
                 st.error("Something is going wrong, please contact admins.")

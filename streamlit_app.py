@@ -1,5 +1,4 @@
 import streamlit as st
-#import pandas as pd
 from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID, DEBUG
 from src.helpers import parse_credentials
 from src.helpers import read_df
@@ -81,12 +80,10 @@ wc = WorkflowProgress("ondra")
 if STEP == 1:    
     # Initialize disabled for form_submit_button to False
     if "clicked_submit" not in st.session_state:
-        st.session_state.clicked_submit = False
-    
+        st.session_state.clicked_submit = False    
     submitted = submit_form(status_df)
         
     if st.session_state.clicked_submit:
-    #if submitted:
         url = status_df["OauthUrl"].values[0]
         render_clickable_link(url, status_df)
 
