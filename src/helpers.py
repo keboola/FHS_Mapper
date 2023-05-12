@@ -26,9 +26,9 @@ def read_df(table_id, filter_col_name=None, filter_col_value=None, index_col=Non
         return df
 
 def determine_step(username):
-    status_df = read_df(STATUS_TAB_ID, "owner_id", username)    
+    status_df = read_df(STATUS_TAB_ID, "entity_name", username)    
 
-    authorization = status_df.loc[status_df["owner_id"]==username, "config_has_data"].values[0]
+    authorization = status_df.loc[status_df["entity_name"]==username, "config_has_data"].values[0]
     if authorization==1:
         step = 2
     else:
@@ -107,7 +107,7 @@ def data_issues():
 def write_file_submit_authorization(status_df, 
                               company_id=None, 
                               financial_calendar=None, 
-                              file_path=".status.csv"):
+                              file_path=".dev_status.csv"):
     """
     
 
@@ -145,7 +145,7 @@ def update_status_table(
         #keboola_key,
         table_id=STATUS_TAB_ID,
     #    bucket_id,
-        file_path='.status.csv',
+        file_path='.dev_status.csv',
         #primary_key='config_id',
         is_incremental=True, 
         delimiter=',',
@@ -187,7 +187,7 @@ def check_config_values():
     # fill logic for custom calendar
 def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     
-    username = status_df.owner_id.values[0]
+    username = status_df.entity_name.values[0]
     #class_{i}
     
     classes = sorted([ k for k in st.session_state.keys() if k.startswith('class_')])
@@ -198,7 +198,7 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     mapping_timestamp = str(datetime.datetime.now())
     for c, l in zip(classes, locations):
         inner_dict = {}
-        inner_dict['owner_id'] = username
+        inner_dict['entity_name'] = username
         inner_dict['class_dep'] = st.session_state[c]
         inner_dict['location'] = st.session_state[l]
         inner_dict['timestamp'] = mapping_timestamp
@@ -217,7 +217,7 @@ def create_or_update_table(table_name,
         delimiter=',',
         enclosure='"', 
         escaped_by='', 
-        columns=["owner_id", "class_dep"],
+        columns=["entity_name", "class_dep"],
         without_headers=False):
     """
     The function creates or incrementally updates the mapping table. 
