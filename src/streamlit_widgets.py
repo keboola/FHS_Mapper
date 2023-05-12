@@ -73,6 +73,11 @@ def open_url(url='www.google.com'):
 def submit_form(status_df):
     
         with st.form("submitform"):
+
+            if not pd.isna(status_df["company_id"].values[0]):
+                st.warning("The Quickbooks Company ID and Authorization is already done! Please proceed only if you want to update the Company ID")
+
+
             st.markdown("1. Please fill in your **Quickbooks Company ID** and if you are using a financial calendar, then select the checkbox below **Using Financial Calendar**")
 
             col1, col2 = st.columns(2)
@@ -83,12 +88,14 @@ def submit_form(status_df):
                 
             with col2:
                 st.markdown("Using Financial Calendar:")
-                st.checkbox(label="custom_cal_check", key='custom_calendar', label_visibility="collapsed")
+                #st.checkbox(label="custom_cal_check", key="custom_calendar", label_visibility="collapsed")
+
+                st.checkbox(label="custom_cal_check", key="custom_calendar")
             
             #if st.session_state['custom_calendar']:
             #    st.session_state['custom_calendar']=1
             
-#            submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
+            #submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
             submitted = st.form_submit_button("Submit", on_click=clicked_submit)
 
             ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
@@ -137,7 +144,7 @@ def render_clickable_link(url, status_df):
         if clicked_auth:
             #st.session_state.clicked_auth = False
             write_file_submit_authorization(status_df)
-            status_df.loc[:, ["owner_id", "config_id"]].to_csv(".flow2trigger.csv", index=False)
+            status_df.loc[:, ["entity_name", "config_id"]].to_csv(".flow2trigger.csv", index=False)
             
             res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
             
@@ -159,7 +166,7 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False):
+def render_selectboxes(mapping_values_classes, status_df, license_number,entity_name, debug=False):
     with st.form("mapping_form"):
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
@@ -177,10 +184,11 @@ def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False)
             st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
         
         if debug:
-            owner_id='Jason_Steele' 
+            license_number='Jason_Steele' 
             st.warning("DEBUG MODE TURNED ON")
         
-        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.owner_id==owner_id, "CenterName"].values.tolist() 
+
+        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.license_number==str(license_number), "Restaurant"].values.tolist() 
         mapping_values_locations = sorted(list(set(mapping_values_locations)))
         idx = mapping_values_locations.index("NA")
         
@@ -199,8 +207,7 @@ def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False)
                     st.selectbox("loc", mapping_values_locations, index=idx,  key=f"location_{i}", label_visibility='collapsed')
 
         text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
-        
-        text_df = pd.DataFrame([{'owner_id':owner_id, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
+        text_df = pd.DataFrame([{'entity_name':entity_name, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
         text_df.to_csv('.text.csv', index=False)
         
         submitted = st.form_submit_button("Submit")
@@ -208,7 +215,7 @@ def render_selectboxes(mapping_values_classes, status_df, owner_id, debug=False)
         if submitted:
             path = prepare_mapping_file(status_df)
             result, message=create_or_update_table('mapping', file_path=path)
-            result2, message2=create_or_update_table('text_messages', file_path='.text.csv', columns=['owner_id'])
+            result2, message2=create_or_update_table('text_messages', file_path='.text.csv', columns=['entity_name'])
 
             if result and result2:
                 st.success(message)
