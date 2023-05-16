@@ -78,25 +78,34 @@ def submit_form(status_df):
                 st.warning("The Quickbooks Company ID and Authorization is already done! Please proceed only if you want to update the Company ID")
 
 
-            st.markdown("1. Please fill in your **Quickbooks Company ID** and if you are using a financial calendar, then select the checkbox below **Using Financial Calendar**")
+            st.markdown("1. Please fill in your **Quickbooks Company ID** and select the **Accounting Calendar** you are using from the drop-down")
 
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("Quickbooks Company ID:")
-                st.text_input(label="aaa", label_visibility="collapsed", key='company_id')
+                st.text_input(label="Quickbooks Company ID:",  key='company_id')
                 
             with col2:
-                st.markdown("Using Financial Calendar:")
+                #st.markdown("Select Calendar Type:")
                 #st.checkbox(label="custom_cal_check", key="custom_calendar", label_visibility="collapsed")
 
-                st.checkbox(label="custom_cal_check", key="custom_calendar")
-            
+                #st.checkbox(label="custom_cal_check", key="custom_calendar")
+                
+                calendar_selection = st.selectbox(label = 'Accounting Calendar',options=('Calendar (Jan 1- Dec 31)', 'Fiscal Calendar (Period 4-4-5)'),key="calendar_selection")
+                if st.session_state["calendar_selection"] == 'Fiscal Calendar (Period 4-4-5)':
+                    custom_calendar = 1
+                    st.session_state["custom_calendar"] = 1
+                else:
+                    custom_calendar = 0
+                    st.session_state["custom_calendar"] = 0
             #if st.session_state['custom_calendar']:
             #    st.session_state['custom_calendar']=1
+
             
             #submitted = st.form_submit_button("Submit", on_click=disable, disabled=st.session_state.disabled)
+            st.write("_You will have the **Company ID** in the format **9130 3565 4172 6086**, please enter without spaces  eg: **9130356541726086**_")
             submitted = st.form_submit_button("Submit", on_click=clicked_submit)
+            
 
             ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
 
