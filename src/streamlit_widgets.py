@@ -84,6 +84,8 @@ def submit_form(status_df):
             
             with col1:
                 st.text_input(label="Quickbooks Company ID:",  key='company_id')
+
+
                 
             with col2:
                 #st.markdown("Select Calendar Type:")
@@ -175,7 +177,7 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(mapping_values_classes, status_df, license_number,entity_name, debug=False):
+def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=False):
     with st.form("mapping_form"):
         st.markdown("**Please put together related locations and classes:**")
         col1, col2 = st.columns(2)
@@ -197,7 +199,7 @@ def render_selectboxes(mapping_values_classes, status_df, license_number,entity_
             st.warning("DEBUG MODE TURNED ON")
         
 
-        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.license_number==str(license_number), "Restaurant"].values.tolist() 
+        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
         mapping_values_locations = sorted(list(set(mapping_values_locations)))
         idx = mapping_values_locations.index("NA")
         
