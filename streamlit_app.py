@@ -35,7 +35,6 @@ if authentication_status:
             st.session_state['logout'] = False
 
     status_df = read_df(STATUS_TAB_ID, filter_col_name="entity_name", filter_col_value=name, dtype={'config_id':str})
-    license_number = status_df["license_number"]
     config_id = status_df.config_id.values[0]
     #st.write(config_id)
     if "company_id_old" not in st.session_state.keys(): 
@@ -91,7 +90,7 @@ if STEP == 1:
         render_clickable_link(url, status_df)
 
 elif STEP == 2:
-    render_selectboxes(mapping_values, status_df, license_number,name, debug=DEBUG)
+    render_selectboxes(mapping_values, status_df,name, debug=DEBUG)
         
 else:
     st.info("mapping functionality is about to be released")
