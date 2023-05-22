@@ -127,7 +127,7 @@ def write_file_submit_authorization(status_df,
     """    
 
     if not company_id:
-        company_id = st.session_state.get("company_id", "")
+        company_id = st.session_state.get("company_id", "").replace(" ","")
     
     if not financial_calendar:
         financial_calendar = st.session_state.get("custom_calendar", False)
