@@ -36,20 +36,16 @@ if authentication_status:
 
     status_df = read_df(STATUS_TAB_ID, filter_col_name="entity_name", filter_col_value=name, dtype={'config_id':str})
     config_id = status_df.config_id.values[0]
-    #st.write(config_id)
     if "company_id_old" not in st.session_state.keys(): 
         st.session_state["company_id_old"] = status_df["company_id"].values[0]
     if "custom_calendar_old" not in st.session_state.keys(): 
         st.session_state["custom_calendar_old"] = status_df["custom_calendar"].values[0]
-
+    if "report_tracking_old" not in st.session_state.keys(): 
+        st.session_state["report_tracking_old"] = status_df["report_tracking"].values[0]
     STEP = determine_step(name)
     preselected_option = [1, 2].index(STEP)
         
-    #with st.sidebar:
-    #    STEP = st.selectbox("[MOCK ONLY] select workflow step", [1, 2], index=preselected_option)
 
-
-    #----------------------------------------------------------
     if STEP == 1:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_inprogress
         st.session_state.mapping_sentiment = WorkflowProgress.theme_neutral
