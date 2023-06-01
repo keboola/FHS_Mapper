@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 11 09:15:39 2023
-
-@author: ondrejsvoboda
-"""
-
 import streamlit as st
 import streamlit.components.v1 as components
 from src.helpers import write_file_submit_authorization
@@ -20,6 +12,7 @@ import webbrowser
 from st_click_detector import click_detector
 import pandas as pd
 import datetime
+import numpy as np
 
 restaurants_df = read_df(RESTAURANTS_TAB_ID)
 mapping_df = read_df(MAPPING_TAB_ID)
@@ -78,10 +71,24 @@ def submit_form(status_df):
                 st.warning("The Quickbooks Company ID and Authorization is already done! Please proceed only if you want to update the Company ID")
 
 
-            st.markdown("1. Please fill in your **Quickbooks Company ID** and select the **Accounting Calendar** you are using from the drop-down")
+            st.markdown("1. Please fill in your **Quickbooks Company ID** and select the **Accounting Calendar** you are using and the method of **Report tracked** from the drop-down")
 
-            col1, col2 = st.columns(2)
             
+            tracking_selection = st.selectbox(label = 'How do you track your restaurants in QuickBooks?',options=('By Class', 'By Location', 'One Account per Restaurant'),key="tracking_selection")
+            if st.session_state["tracking_selection"] == 'By Class':
+                report_tracking = 'Class'
+                st.session_state["report_tracking"] = 'Class'
+            if st.session_state["tracking_selection"] == 'By Location':
+                report_tracking = 'Department'
+                st.session_state["report_tracking"] = 'Department'
+            else:
+                report_tracking = 'None'
+                st.session_state["report_tracking"] = 'None'
+            
+            col1, col2 = st.columns(2)
+        
+
+
             with col1:
                 st.text_input(label="Quickbooks Company ID:",  key='company_id')
 
@@ -100,6 +107,14 @@ def submit_form(status_df):
                 else:
                     custom_calendar = 0
                     st.session_state["custom_calendar"] = 0
+
+         
+                #st.markdown("Select Calendar Type:")
+                #st.checkbox(label="custom_cal_check", key="custom_calendar", label_visibility="collapsed")
+
+                #st.checkbox(label="custom_cal_check", key="custom_calendar")
+                
+
             #if st.session_state['custom_calendar']:
             #    st.session_state['custom_calendar']=1
 
@@ -156,6 +171,7 @@ def render_clickable_link(url, status_df):
             #st.session_state.clicked_auth = False
             write_file_submit_authorization(status_df)
             status_df.loc[:, ["entity_name", "config_id"]].to_csv(".flow2trigger.csv", index=False)
+            # here instead I will have the api call to call the config / orchestration
             
             res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
             
@@ -169,6 +185,9 @@ def render_clickable_link(url, status_df):
             if 'custom_calendar' in st.session_state.keys():
                 st.session_state['custom_calendar_old'] = int(st.session_state['custom_calendar'])
 
+            if 'report_tracking' in st.session_state.keys():
+                st.session_state['report_tracking_old'] = (st.session_state['report_tracking'])
+
 
             #st.write("checking response", res)
             st.success("QuickBooks account authorization is in progress. Please log out and wait for an email notification to proceed (if you do not receive it shortly, please check also your spam folder).")
@@ -178,60 +197,70 @@ def render_clickable_link(url, status_df):
             st.warning("The link is yet to be clicked")
         
 def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=False):
-    with st.form("mapping_form"):
-        st.markdown("**Please put together related locations and classes:**")
-        col1, col2 = st.columns(2)
-        
-        
-        
-        
-        #mapping_values_classes = list(range(0, 3))
-        if mapping_values_classes.shape[0]>0:
-            nmapping = mapping_values_classes.shape[0]
-        else:
-            nmapping = 3
+    mapping_values_classes = np.sort(mapping_values_classes)
+    mapping_values_classes = np.append(mapping_values_classes,"NA")
+    if status_df["report_tracking"].isna().all():
+        st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
+
+    if (status_df["report_tracking"]=='None').all():
+        st.markdown(f"There are no further actions needed from your end for Quickbooks Company ID **{status_df.company_id.values[0]}**.")
+    
+    if (status_df["report_tracking"].isin(['Class','Department'])).all() : 
+        with st.form("mapping_form"):
+            st.markdown("**Please put together related locations and classes:**")
+            col1, col2 = st.columns(2)
             
-        if len(mapping_values_classes)==0:
-            st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
-        
-        if debug:
-            license_number='Jason_Steele' 
-            st.warning("DEBUG MODE TURNED ON")
-        
-
-        mapping_values_locations = ["NA"] + restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
-        mapping_values_locations = sorted(list(set(mapping_values_locations)))
-        idx = mapping_values_locations.index("NA")
-        
-        with col1:
-            st.markdown("**Class or Department**")
-        
-        with col2:
-            st.markdown("**Restaurant name**")
-        
-        #nmapping = mapping_values_classes.shape[0]
-        
-        for i in range(nmapping):
-                with col1:
-                    st.selectbox("cls", mapping_values_classes, index=i, key=f"class_{i}", label_visibility='collapsed', disabled=True)
-                with col2:
-                    st.selectbox("loc", mapping_values_locations, index=idx,  key=f"location_{i}", label_visibility='collapsed')
-
-        text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
-        text_df = pd.DataFrame([{'entity_name':entity_name, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
-        text_df.to_csv('.text.csv', index=False)
-        
-        submitted = st.form_submit_button("Submit")
-        ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
-        if submitted:
-            path = prepare_mapping_file(status_df)
-            result, message=create_or_update_table('mapping', file_path=path)
-            result2, message2=create_or_update_table('text_messages', file_path='.text.csv', columns=['entity_name'])
-
-            if result and result2:
-                st.success(message)
-
+        #mapping_values_classes = list(range(0, 3))
+            if mapping_values_classes.shape[0]>0:
+                nmapping = mapping_values_classes.shape[0]
             else:
-                print(message)
-                print(message2)
-                st.error("Something is going wrong, please contact admins.")
+                nmapping = 3
+                
+            if len(mapping_values_classes)==0:
+                st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
+            
+            if debug:
+                license_number='Jason_Steele' 
+                st.warning("DEBUG MODE TURNED ON")
+            
+
+            mapping_values_locations = restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
+            mapping_values_locations = sorted(list(set(mapping_values_locations)))
+            
+            
+            with col1:
+                st.markdown("**Restaurant name**")
+
+            
+            with col2:
+                st.markdown("**Class or Location**")
+
+            
+            #nmapping = mapping_values_classes.shape[0]
+            
+            for i in range(nmapping):
+                    with col1:
+                        st.selectbox("loc", mapping_values_locations, index=i,  key=f"location_{i}", label_visibility='collapsed', disabled=True)
+
+                    with col2:
+                        st.selectbox("cls", mapping_values_classes, index=i, key=f"class_{i}", label_visibility='collapsed')
+
+
+            text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
+            text_df = pd.DataFrame([{'entity_name':entity_name, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
+            text_df.to_csv('.text.csv', index=False)
+            
+            submitted = st.form_submit_button("Submit")
+            ChangeButtonColour('Submit', 'black', '#F8C471') # button txt to find, colour to assign
+            if submitted:
+                path = prepare_mapping_file(status_df)
+                result, message=create_or_update_table('mapping', file_path=path)
+                result2, message2=create_or_update_table('text_messages', file_path='.text.csv', columns=['entity_name'])
+
+                if result and result2:
+                    st.success(message)
+
+                else:
+                    print(message)
+                    print(message2)
+                    st.error("Something is going wrong, please contact admins.")
