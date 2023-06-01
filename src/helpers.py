@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 11 08:50:44 2023
-
-@author: ondrejsvoboda
-"""
-
 from src.settings import keboola_client, STATUS_TAB_ID
 from src.settings import STREAMLIT_BUCKET_ID
 import streamlit as st
@@ -107,6 +99,7 @@ def data_issues():
 def write_file_submit_authorization(status_df, 
                               company_id=None, 
                               financial_calendar=None, 
+                              tracking_selection = None,
                               file_path=".dev_status.csv"):
     """
     
@@ -131,10 +124,14 @@ def write_file_submit_authorization(status_df,
     
     if not financial_calendar:
         financial_calendar = st.session_state.get("custom_calendar", False)
+
+    if not tracking_selection:
+        tracking_selection = st.session_state.get('report_tracking',"")
     
     status_df["company_id"]=company_id
     status_df["custom_calendar"] = int(financial_calendar)
     status_df["authorization_timestamp"] = str(datetime.datetime.now())
+    status_df["report_tracking"] = tracking_selection
     status_df.to_csv(file_path, index=False)
     
     return None
@@ -177,7 +174,9 @@ def check_config_values():
             (st.session_state["company_id_old"] in [None, ""])) and (
             (st.session_state["custom_calendar"]==st.session_state["custom_calendar_old"]) or
             (st.session_state["custom_calendar_old"]  in [None, ""])
-        ):
+        ) and (
+            (st.session_state["report_tracking"]==st.session_state["report_tracking_old"]) or
+            (st.session_state["report_tracking_old"]  in [None, ""])):
         return 1
     else:
         return 0
