@@ -5,6 +5,7 @@ from src.helpers import update_status_table
 from src.helpers import check_config_values
 from src.helpers import prepare_mapping_file
 from src.helpers import create_or_update_table
+from src.helpers import trigger_flow
 from src.helpers import read_df
 from src.settings import RESTAURANTS_TAB_ID, MAPPING_TAB_ID
 import hydralit_components as hc
@@ -16,6 +17,8 @@ import numpy as np
 
 restaurants_df = read_df(RESTAURANTS_TAB_ID)
 mapping_df = read_df(MAPPING_TAB_ID)
+keboola_token = st.secrets["kbc_token_master"]
+
 
 class WorkflowProgress():
     theme_bad = {'bgcolor': '#FFF0F0','progress_color': 'red', 'title_color': 'red','content_color': 'red','icon_color': 'red', 'icon': 'fa fa-times-circle'}
@@ -130,17 +133,19 @@ def submit_form(status_df):
                 val_status = check_config_values()
                 st.session_state.clicked_auth = False
                 #st.write(f"st.session_state.clicked_auth {st.session_state.clicked_auth}")
-                if val_status == 0:
+                if (status_df["authorization_done"]==1).all() :
+                    write_file_submit_authorization(status_df)
+                elif val_status == 0:
                     st.warning(
                         f"""You are trying to replace previously input values (company_id = {st.session_state['company_id_old']}
                             and {st.session_state['custom_calendar_old']}) for new values (company_id = {st.session_state['company_id']} and {int(st.session_state['custom_calendar'])}). If this is not desired, 
                             please change the values in the form and click "Submit" again.
                         """
                         )
+                
                 else:
                     st.info(f"You have entered: a company ID = {st.session_state.company_id} and Financial Calendar = {int(st.session_state.custom_calendar)}")
-               
-                #write_file_submit_authorization(status_df)
+
             return submitted
 
             
@@ -172,11 +177,10 @@ def render_clickable_link(url, status_df):
             write_file_submit_authorization(status_df)
             status_df.loc[:, ["entity_name", "config_id"]].to_csv(".flow2trigger.csv", index=False)
             # here instead I will have the api call to call the config / orchestration
+            #res = trigger_flow(keboola_token, '970576624', 'keboola.orchestrator')
             
-            res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
+            #res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
             
-            if not res:
-                print("trying to create trigger table:" + message)
             res, _ = update_status_table()
             
             if 'company_id' in st.session_state.keys():
@@ -197,8 +201,11 @@ def render_clickable_link(url, status_df):
             st.warning("The link is yet to be clicked")
         
 def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=False):
-    mapping_values_classes = np.sort(mapping_values_classes)
+    mapping_values_classes_main = mapping_values_classes.copy()
     mapping_values_classes = np.append(mapping_values_classes,"NA")
+    mapping_values_classes = sorted(list(set(mapping_values_classes)))
+    idx = mapping_values_classes.index("NA")
+
     if status_df["report_tracking"].isna().all():
         st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
 
@@ -211,12 +218,12 @@ def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=Fals
             col1, col2 = st.columns(2)
             
         #mapping_values_classes = list(range(0, 3))
-            if mapping_values_classes.shape[0]>0:
-                nmapping = mapping_values_classes.shape[0]
+            if mapping_values_classes_main.shape[0]>0:
+                nmapping = mapping_values_classes_main.shape[0]
             else:
                 nmapping = 3
                 
-            if len(mapping_values_classes)==0:
+            if len(mapping_values_classes_main)==0:
                 st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
             
             if debug:
@@ -243,7 +250,7 @@ def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=Fals
                         st.selectbox("loc", mapping_values_locations, index=i,  key=f"location_{i}", label_visibility='collapsed', disabled=True)
 
                     with col2:
-                        st.selectbox("cls", mapping_values_classes, index=i, key=f"class_{i}", label_visibility='collapsed')
+                        st.selectbox("cls", mapping_values_classes,index=idx, key=f"class_{i}", label_visibility='collapsed')
 
 
             text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
