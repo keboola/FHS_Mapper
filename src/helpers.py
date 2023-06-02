@@ -1,5 +1,7 @@
 from src.settings import keboola_client, STATUS_TAB_ID
 from src.settings import STREAMLIT_BUCKET_ID
+import requests
+import json
 import streamlit as st
 import pandas as pd
 import datetime
@@ -288,7 +290,33 @@ def create_or_update_table(table_name,
             except Exception as e:
                 return False, str(e)   
     except Exception as e:
-        return False, str(e)             
+        return False, str(e)     
+
+def trigger_flow(api_token, config_id, component_name):
+    headers = {
+      'accept': 'application/json',
+      'X-KBC-RunId': '',  # Set the appropriate run ID if available
+      'X-StorageApi-Token': api_token,
+      'Content-Type': 'application/json'
+    }
+    payload = json.dumps({
+      "component": component_name,
+      "mode": "run",
+      "config": config_id
+    })
+
+    url = "https://queue.keboola.com/jobs"
+    try:
+        response = requests.post(url, headers=headers, data=payload)
+        if response.status_code == 201:
+            print("Flow for mapping is triggered")
+            return response.json()
+        else:
+            print(f"Error - Response code: {response.status_code}, JSON: {response.json()}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error - {e}")
+        
+        
     
         
         
