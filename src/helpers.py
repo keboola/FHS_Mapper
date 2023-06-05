@@ -294,32 +294,50 @@ def create_or_update_table(table_name,
 
 def trigger_flow(api_token, config_id, component_name):
     headers = {
-      'accept': 'application/json',
-      'X-KBC-RunId': '',  # Set the appropriate run ID if available
-      'X-StorageApi-Token': api_token,
-      'Content-Type': 'application/json'
+        'accept': 'application/json',
+        'X-KBC-RunId': '',  # Set the appropriate run ID if available
+        'X-StorageApi-Token': api_token,
+        'Content-Type': 'application/json'
     }
     payload = json.dumps({
-      "component": component_name,
-      "mode": "run",
-      "config": config_id
+        "component": component_name,
+        "mode": "run",
+        "config": config_id
     })
 
     url = "https://queue.keboola.com/jobs"
     try:
+        # Check if a job is already running for the config_id
+        if is_job_running(api_token, config_id):
+            print("A job is already running for the current config_id. Skipping job creation.")
+            return None
+
+        # Create a new job
         response = requests.post(url, headers=headers, data=payload)
         if response.status_code == 201:
+            job_data = response.json()
+            run_id = job_data.get("id")
             print("Flow for mapping is triggered")
             return response.json()
         else:
             print(f"Error - Response code: {response.status_code}, JSON: {response.json()}")
     except requests.exceptions.RequestException as e:
         print(f"Error - {e}")
-        
-        
-    
-        
-        
-        
-        
-        
+
+def is_job_running(api_token, config_id):
+    headers = {
+        'accept': 'application/json',
+        'X-StorageApi-Token': api_token,
+    }
+    url = f"https://queue.keboola.com/jobs"
+    try:
+        response = requests.get(url, headers=headers, params={"config": config_id, "status": "running"})
+        if response.status_code == 200:
+            job_data = response.json()
+            return len(job_data) > 0
+        else:
+            print(f"Error - Response code: {response.status_code}, JSON: {response.json()}")
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"Error - {e}")
+        return False
