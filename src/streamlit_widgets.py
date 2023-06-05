@@ -177,7 +177,7 @@ def render_clickable_link(url, status_df):
             write_file_submit_authorization(status_df)
             status_df.loc[:, ["entity_name", "config_id"]].to_csv(".flow2trigger.csv", index=False)
             # here instead I will have the api call to call the config / orchestration
-            #res = trigger_flow(keboola_token, '970576624', 'keboola.orchestrator')
+            res = trigger_flow(keboola_token, '970576624', 'keboola.orchestrator')
             
             #res, message = create_or_update_table("flow2_trigger_tab", file_path=".flow2trigger.csv",is_incremental=False,columns=None)
             
