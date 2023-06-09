@@ -77,16 +77,17 @@ def submit_form(status_df):
             st.markdown("1. Please fill in your **Quickbooks Company ID** and select the **Accounting Calendar** you are using and the method of **Report tracked** from the drop-down")
 
             
-            tracking_selection = st.selectbox(label = 'How do you track your restaurants in QuickBooks?',options=('By Class', 'By Location', 'One Account per Restaurant'),key="tracking_selection")
-            if st.session_state["tracking_selection"] == 'By Class':
+            tracking_select = st.selectbox(label = 'How do you track your restaurants in QuickBooks?',options=('By Class', 'By Location', 'One Account per Restaurant'),key="tracking_select")
+            if st.session_state["tracking_select"] == 'By Class':
                 report_tracking = 'Class'
                 st.session_state["report_tracking"] = 'Class'
-            if st.session_state["tracking_selection"] == 'By Location':
+            if st.session_state["tracking_select"] == 'By Location':
                 report_tracking = 'Department'
                 st.session_state["report_tracking"] = 'Department'
-            else:
+            if st.session_state["tracking_select"]== 'One Account per Restaurant':
                 report_tracking = 'None'
                 st.session_state["report_tracking"] = 'None'
+            
             
             col1, col2 = st.columns(2)
         
@@ -132,9 +133,12 @@ def submit_form(status_df):
             if submitted:
                 val_status = check_config_values()
                 st.session_state.clicked_auth = False
+                write_file_submit_authorization(status_df)
+
                 #st.write(f"st.session_state.clicked_auth {st.session_state.clicked_auth}")
                 if (status_df["authorization_done"]==1).all() :
                     write_file_submit_authorization(status_df)
+                    res = update_status_table()
                 elif val_status == 0:
                     st.warning(
                         f"""You are trying to replace previously input values (company_id = {st.session_state['company_id_old']}
@@ -205,6 +209,8 @@ def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=Fals
     mapping_values_classes = np.append(mapping_values_classes,"NA")
     mapping_values_classes = sorted(list(set(mapping_values_classes)))
     idx = mapping_values_classes.index("NA")
+    mapping_values_locations = restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
+    mapping_values_locations = sorted(list(set(mapping_values_locations)))
 
     if status_df["report_tracking"].isna().all():
         st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
@@ -214,16 +220,16 @@ def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=Fals
     
     if (status_df["report_tracking"].isin(['Class','Department'])).all() : 
         with st.form("mapping_form"):
-            st.markdown("**Please put together related locations and classes:**")
+            st.markdown("**Please put together related restaurants and classes:**")
             col1, col2 = st.columns(2)
             
         #mapping_values_classes = list(range(0, 3))
-            if mapping_values_classes_main.shape[0]>0:
-                nmapping = mapping_values_classes_main.shape[0]
+            if np.shape(mapping_values_locations)[0]>0:
+                nmapping = np.shape(mapping_values_locations)[0]
             else:
                 nmapping = 3
                 
-            if len(mapping_values_classes_main)==0:
+            if len(mapping_values_locations)==0:
                 st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
             
             if debug:
@@ -231,8 +237,7 @@ def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=Fals
                 st.warning("DEBUG MODE TURNED ON")
             
 
-            mapping_values_locations = restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
-            mapping_values_locations = sorted(list(set(mapping_values_locations)))
+
             
             
             with col1:
