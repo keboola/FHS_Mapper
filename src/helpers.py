@@ -119,7 +119,7 @@ def write_file_submit_authorization(status_df,
     -------
     None.
 
-    """    
+    """  
 
     if not company_id:
         company_id = st.session_state.get("company_id", "").replace(" ","")
@@ -129,6 +129,8 @@ def write_file_submit_authorization(status_df,
 
     if not tracking_selection:
         tracking_selection = st.session_state.get('report_tracking',"")
+    
+
     
     status_df["company_id"]=company_id
     status_df["custom_calendar"] = int(financial_calendar)
