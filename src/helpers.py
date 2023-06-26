@@ -14,7 +14,7 @@ def read_df(table_id, filter_col_name=None, filter_col_value=None, index_col=Non
     keboola_client.tables.export_to_file(table_id, '.')
     table_name = table_id.split(".")[-1]
     #st.write(filter_col_value)
-    df = pd.read_csv(table_name, index_col=index_col, parse_dates=date_col, dtype=dtype)
+    df = pd.read_csv(table_name, index_col=index_col, parse_dates=date_col, dtype=dtype, keep_default_na=False, na_values=[''])
     if filter_col_name:
         return df.loc[df[filter_col_name]==filter_col_value]
     else:
