@@ -5,6 +5,7 @@ import json
 import streamlit as st
 import pandas as pd
 import datetime
+import numpy as np
 
 # https://blog.streamlit.io/streamlit-authenticator-part-1-adding-an-authentication-component-to-your-app/
 
@@ -23,7 +24,8 @@ def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "entity_name", username)    
 
     authorization = status_df.loc[status_df["entity_name"]==username, "config_has_data"].values[0]
-    if authorization==1:
+    report_tracking = (status_df.loc[status_df["entity_name"]==username, "report_tracking"].values[0])
+    if authorization==1 or report_tracking=='None':
         step = 2
     else:
         step = 1
@@ -195,6 +197,10 @@ def prepare_mapping_file(status_df, file_path='.mapping.csv'):
     
     classes = sorted([ k for k in st.session_state.keys() if k.startswith('class_')])
     locations = sorted([ k for k in st.session_state.keys() if k.startswith('location_')])
+
+   # old_classes = sorted([ k for k in st.session_state.keys() if k.startswith('old_class_')])
+   # old_locations = sorted([ k for k in st.session_state.keys() if k.startswith('old_location_')])
+    
     
     to_dict = []
     
