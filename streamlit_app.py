@@ -1,5 +1,5 @@
 import streamlit as st
-from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID, DEBUG
+from src.settings import STATUS_TAB_ID, MAPPING_CLASSES_TAB_ID,MAPPING_TAB_ID, DEBUG
 from src.helpers import parse_credentials
 from src.helpers import read_df
 from src.helpers import determine_step
@@ -54,6 +54,7 @@ if authentication_status:
         st.session_state.authorization_sentiment = WorkflowProgress.theme_good
         st.session_state.mapping_sentiment = WorkflowProgress.theme_inprogress
         mapping_df = read_df(MAPPING_CLASSES_TAB_ID, "config_id", config_id, dtype={'config_id':str})
+        mapping_df_saved = read_df(MAPPING_TAB_ID)
         
         # if there are no classes, just show departments, otherwise show classes
         
@@ -86,7 +87,7 @@ if STEP == 1:
         render_clickable_link(url, status_df)
 
 elif STEP == 2:
-    render_selectboxes(mapping_values, status_df,name, debug=DEBUG)
+    render_selectboxes(mapping_values,mapping_df_saved, status_df,name, debug=DEBUG)
         
 else:
     st.info("mapping functionality is about to be released")
