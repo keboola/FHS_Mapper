@@ -22,7 +22,7 @@ def read_df(table_id, filter_col_name=None, filter_col_value=None, index_col=Non
 
 def determine_step(username):
     status_df = read_df(STATUS_TAB_ID, "entity_name", username)    
-
+    st.write(status_df)
     authorization = status_df.loc[status_df["entity_name"]==username, "config_has_data"].values[0]
     report_tracking = (status_df.loc[status_df["entity_name"]==username, "report_tracking"].values[0])
     if authorization==1 or report_tracking=='None':
