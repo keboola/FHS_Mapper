@@ -204,59 +204,95 @@ def render_clickable_link(url, status_df):
         else:
             st.warning("The link is yet to be clicked")
         
-def render_selectboxes(mapping_values_classes, status_df,entity_name, debug=False):
+def render_selectboxes(mapping_values_classes,mapping_df, status_df,entity_name, debug=False):
     mapping_values_classes_main = mapping_values_classes.copy()
     mapping_values_classes = np.append(mapping_values_classes,"NA")
     mapping_values_classes = sorted(list(set(mapping_values_classes)))
-    idx = mapping_values_classes.index("NA")
+    #idx = mapping_values_classes.index("NA")
     mapping_values_locations = restaurants_df.loc[restaurants_df.entity_name==str(entity_name), "Restaurant"].values.tolist() 
     mapping_values_locations = sorted(list(set(mapping_values_locations)))
+    values_not_in_mapping_df_class = np.append(list(set(mapping_values_classes_main) - set(mapping_df[mapping_df["entity_name"]==entity_name]["class_dep"])),"NA")
+    values_not_in_mapping_df_loc = list(set(mapping_values_locations) - set(mapping_df[mapping_df["entity_name"]==entity_name]["location"]))
+    idx = (list(values_not_in_mapping_df_class)).index("NA")
+
 
     if status_df["report_tracking"].isna().all():
-        st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
+        st.warning(f"WARNING: No data are available for Quickbooks Company ID {int(status_df.company_id.values[0])}.")
 
     if (status_df["report_tracking"]=='None').all():
-        st.markdown(f"There are no further actions needed from your end for Quickbooks Company ID **{status_df.company_id.values[0]}**.")
+        st.markdown(f"There are no further actions needed from your end for Quickbooks Company ID **{int(status_df.company_id.values[0])}**")
     
     if (status_df["report_tracking"].isin(['Class','Department'])).all() : 
         with st.form("mapping_form"):
-            st.markdown("**Please put together related restaurants and classes:**")
-            col1, col2 = st.columns(2)
-            
-        #mapping_values_classes = list(range(0, 3))
-            if np.shape(mapping_values_locations)[0]>0:
-                nmapping = np.shape(mapping_values_locations)[0]
+            if np.shape(values_not_in_mapping_df_loc)[0]>0:
+                nmapping = np.shape(values_not_in_mapping_df_loc)[0]
             else:
                 nmapping = 3
                 
             if len(mapping_values_locations)==0:
                 st.warning(f"WARNING: No data are available for Quickbooks Company ID {status_df.company_id.values[0]}.")
             
+            st.markdown("**Please expand to review the mapped restaurants and classes:**")
+            st.info("**Note : this is to review what is already mapped**")
+
+            with st.expander("Mapped Data"):
+                col1, col2 = st.columns(2)
+            
+            if np.shape(values_not_in_mapping_df_loc)[0]==0:
+                st.warning("All the data is mapped.")
+            else :
+                st.markdown("**Please put together related restaurants and classes:**")   
+                st.info("**Note : this is for restaurants that are not mapped against class or department**")
+                col3,col4 = st.columns(2)
+                with col3:
+                    st.markdown("**Restaurant name**")
+                with col4:
+                    st.markdown("**Class or Location**")
+                for i in range(nmapping):
+
+                
+
+                    with col3:
+                        st.selectbox("new_loc", values_not_in_mapping_df_loc, index=i,  key=f"location_{i}", label_visibility='collapsed', disabled=True)
+
+                    with col4:
+
+                        st.selectbox("new_cls", values_not_in_mapping_df_class,index=idx, key=f"class_{i}", label_visibility='collapsed')
+
+            
+        #mapping_values_classes = list(range(0, 3))
+            
+            
+
             if debug:
                 license_number='Jason_Steele' 
                 st.warning("DEBUG MODE TURNED ON")
             
 
-
-            
             
             with col1:
                 st.markdown("**Restaurant name**")
 
             
             with col2:
-                st.markdown("**Class or Location**")
+                st.markdown("**Class or Location Mapped**")
+
+
 
             
             #nmapping = mapping_values_classes.shape[0]
+
+
             
-            for i in range(nmapping):
-                    with col1:
-                        st.selectbox("loc", mapping_values_locations, index=i,  key=f"location_{i}", label_visibility='collapsed', disabled=True)
+            for i in range(1,len(mapping_df[mapping_df["entity_name"]==entity_name])):
+                
+                with col1:
+                    st.selectbox("old_loc", mapping_df[mapping_df["entity_name"]==entity_name]["location"],index=i,  key=f"location_old_{i}", label_visibility='collapsed',disabled=True)
 
-                    with col2:
-                        st.selectbox("cls", mapping_values_classes,index=idx, key=f"class_{i}", label_visibility='collapsed')
+                with col2:
+                    st.selectbox("old_class", mapping_df[mapping_df["entity_name"]==entity_name]["class_dep"],index=i,   key=f"class_old_{i}",label_visibility='collapsed')
 
+            
 
             text_area = st.text_area("If there are any issues with data or you have any concerns, please fill in the following text area.", key="text_area")
             text_df = pd.DataFrame([{'entity_name':entity_name, 'message':text_area, 'timestamp':str(datetime.datetime.now())}])
