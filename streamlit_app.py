@@ -19,7 +19,7 @@ authenticator = stauth.Authenticate(
 )
         
 with st.sidebar:
-    image = Image.open('FHS_logo.png')
+    image = Image.open("/data/in/files/995108192_fhs_logo.png")
     st.image(image, caption='')
 
     st.markdown('## **QUICKBOOKS AUTOMATION SETUP**')
